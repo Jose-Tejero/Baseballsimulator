@@ -1,0 +1,56 @@
+{\rtf1\ansi\ansicpg1252\deff0
+{\fonttbl{\f0 Calibri;}{\f1 Courier New;}}
+\fs28\b Baseballsimulator — Resumen del proyecto\b0\fs20\par
+Fecha: \fs18\i (actualizar segun necesidad)\i0\fs20\par
+\par
+\fs22\b Proposito y alcance\b0\fs20\par
+Baseballsimulator es un simulador interactivo de beisbol con interfaz web (React) y motor de reglas en TypeScript. Permite representar el estado de un juego (inning, mitad, outs, bases, marcador) y modela la resolucion de jugadas con heuristicas estocasticas. Ademas integra datos de la MLB (StatsAPI) para obtener equipos, rosters, lineups y estadisticas, habilitando analisis y futuras automatizaciones.\par
+\par
+\fs22\b Tecnologias clave\b0\fs20\par
+- Frontend: React 19 + TypeScript, Vite 7.\par
+- Calidad: ESLint (config TS moderna).\par
+- Herramientas: Scripts auxiliares en TypeScript/JS para simulaciones y trazas.\par
+\par
+\fs22\b Estructura principal\b0\fs20\par
+- src\\engine\\baseball.ts: Motor del juego. Define tipos (estado, eventos), reglas por defecto, normalizacion de reglas (extras vs empates), avance de corredores, outs y anotaciones con probabilidades calibrables (K, GB, FB, LD; dobles jugadas DP, flies de sacrificio SF).\par
+- src\\components\\Scoreboard.tsx: Marcador interactivo para ajustar carreras, outs, bases y mitad del inning; incluye desglose de tipos de out (K/GB/FB/LD), DP y SF.\par
+- src\\services\\mlb.ts: Integracion con MLB StatsAPI. Endpoints para equipos, estadisticas de bateo y pitcheo, roster, probable pitchers, boxscore/lineups, game logs de pitchers y prediccion de lineups basada en historicos recientes y roster.\par
+- src\\App.tsx, src\\Game.tsx, estilos (App.css, index.css) y bootstrap (main.tsx).\par
+- scripts\\: utilidades de simulacion/depuracion (sim-trace, quick-mc, etc.).\par
+\par
+\fs22\b Motor de simulacion (resumen)\b0\fs20\par
+- Estado: inning, mitad (alta/baja), outs, ocupacion de bases, marcador, reglas y estado de fin de juego.\par
+- Reglas: entradas reglamentarias, empates permitidos, extras, walk-off, y opcion de mercy rule. Se normalizan para evitar estados sin salida (si no hay extras y no hay empates, se habilitan extras).\par
+- Eventos y avances: modelado probabilistico de sencillos/dobles/triples y outs con desagregado en K/GB/FB/LD; avance de corredores con tablas heuristicas dependientes de outs; manejo de DP y SF; anotacion y cambio de mitad/entrada.\par
+- Finalizacion: ganador por marcador, soporte de extras, walk-off, tope de entradas.\par
+\par
+\fs22\b Interfaz de usuario\b0\fs20\par
+- Marcador con controles para sumar carreras (home/away), alternar bases (1B, 2B, 3B), registrar outs y pasar de inning.\par
+- Panel de detalle para contabilizar K, GB, FB, LD, DP y SF, afectando los outs.\par
+\par
+\fs22\b Integraciones MLB (StatsAPI)\b0\fs20\par
+- Equipos y estadisticas de temporada (bateo/pitcheo).\par
+- Roster del equipo (activo, 40-man o completo de respaldo).\par
+- Proximos partidos y probables pitchers; obtencion de lineups del boxscore; juego siguiente y oponente.\par
+- Game logs de pitchers (ER y outs) y utilidades de parseo de innings pitched a outs.\par
+- Prediccion de lineup (9 bateadores) a partir de recientes finales, con desempates por frecuencia/recencia y respaldo por roster.\par
+\par
+\fs22\b Como ejecutar\b0\fs20\par
+1) Instalar dependencias: \f1 npm ci\f0\par
+2) Desarrollo: \f1 npm run dev\f0\par
+3) Build de produccion: \f1 npm run build\f0\par
+\par
+\fs22\b Estado del repositorio\b0\fs20\par
+- Rama principal: \f1 main\f0\par
+- Remoto: \f1 origin\f0 \emdash https://github.com/Jose-Tejero/Baseballsimulator.git\par
+- Commit inicial: "chore: initial commit" (estructura base, motor, UI y servicios).\par
+\par
+\fs22\b Proximos pasos sugeridos\b0\fs20\par
+- CI en GitHub Actions (lint + build).\par
+- Pruebas unitarias del motor (reglas y avances).\par
+- Parametrizacion/calibracion de probabilidades y reglas (mercy, extras).\par
+- Internacionalizacion (ES/EN) y accesibilidad.\par
+- Persistencia del estado de juego/sesiones y escenarios preconfigurados.\par
+\par
+\fs18\i Nota: Este documento RTF puede abrirse en Microsoft Word y guardarse como .docx.\i0\fs20\par
+}
