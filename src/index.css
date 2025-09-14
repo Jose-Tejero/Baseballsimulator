@@ -1,0 +1,243 @@
+/* -------------- Design tokens -------------- */
+:root {
+  /* colores base */
+  --bg: #0f1220;
+  --surface: #171a2b;
+  --text: #e8ebf7;
+  --muted: #9aa3b2;
+
+  /* acentos (béisbol vibes) */
+  --accent: #e63946;  /* rojo */
+  --accent-2: #1d9bf0;/* azul */
+
+  /* tipografía & ritmo */
+  --font-sans: ui-sans-serif, system-ui, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --fs-hero: clamp(1.6rem, 1.2rem + 2vw, 2.4rem);
+  --fs-h1: 1.75rem;
+  --fs-h2: 1.25rem;
+  --fs-body: 1rem;
+  --radius: 16px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --border: 1px solid rgba(255,255,255,0.08);
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* Dark / Light automático */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --text: #0e1320;
+    --muted: #5b616e;
+    --border: 1px solid rgba(0,0,0,0.08);
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+}
+
+/* -------------- Reset razonable -------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  color: var(--text);
+  background: radial-gradient(1200px 800px at 20% -10%, rgba(29,155,240,0.15), transparent 60%),
+              radial-gradient(1000px 700px at 100% 0%, rgba(230,57,70,0.12), transparent 60%),
+              var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* -------------- Helpers -------------- */
+.container {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 2vw, 24px);
+  overflow-x: hidden;          /* corta posibles sombras y gradientes */
+}
+
+/* Botones */
+.button {
+  appearance: none;
+  border: none;
+  border-radius: calc(var(--radius) - 6px);
+  padding: 10px 14px;
+  font-weight: 600;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: transform .08s ease, opacity .2s ease, background .2s ease;
+}
+.button:is(:hover, :focus-visible) { transform: translateY(-1px); }
+.button:active { transform: translateY(0); opacity: .9; }
+.button.secondary { background: var(--accent-2); }
+
+/* Tarjetas */
+.card {
+  background: var(--surface);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-6);
+  max-width: 100%;
+  overflow: hidden;            /* cualquier hijo locochón se recorta */
+}
+.card input[type="range"],
+.card input[type="number"],
+.card input[type="text"],
+.card select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mejora estética mínima del number */
+.card input[type="number"] {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: color-mix(in oklab, var(--surface) 92%, black 8%);
+  color: var(--text);
+}
+
+/* Tipografía utilitaria */
+.h-hero { font-size: var(--fs-hero); line-height: 1.1; letter-spacing: -0.02em; }
+.h1 { font-size: var(--fs-h1); margin: 0 0 var(--space-3); }
+.h2 { font-size: var(--fs-h2); margin: 0 0 var(--space-2); color: var(--muted); }
+.muted { color: var(--muted); }
+
+/* Layout principal con grid + container queries */
+.main {
+  padding: var(--space-6) 0 var(--space-6);
+  container-type: inline-size;
+}
+.grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);   /* evita overflow en la col 1 */
+  align-items: start;                       /* no estirar filas a la altura del panel */
+}
+
+@container (min-width: 700px) {
+  .grid {
+    grid-template-columns: 1.2fr .8fr; /* tablero / panel lateral */
+  }
+}
+
+/* -------------- Scoreboard específico -------------- */
+.scoreboard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.teamRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: calc(var(--radius) - 6px);
+  background: color-mix(in oklab, var(--surface) 92%, black 8%);
+  border: var(--border);
+}
+.teamRow .name { font-weight: 700; }
+.teamRow .score { font-size: 2.2rem; font-variant-numeric: tabular-nums; }
+/* Botones y filas no empujan: */
+.teamRow, .button { min-width: 0; }
+
+/* Por si el gradiente de fondo generaba scroll horizontal en ciertos zooms */
+body { overflow-x: hidden; }
+
+/* Bases (diamante) — FIX anti-superposición */
+.bases {
+  --s: 18px;   /* tamaño del rombo/base */
+  --c: 44px;   /* tamaño de cada celda del grid (debe ser > --s) */
+  display: grid;
+  grid-template-columns: repeat(3, var(--c));
+  grid-template-rows: repeat(3, var(--c));
+  place-items: center;   /* centra cada base en su celda */
+  gap: 8px;              /* espacio adicional entre celdas */
+  padding-top: var(--space-4);
+}
+
+.base {
+  width: var(--s);
+  height: var(--s);
+  rotate: 45deg;
+  border-radius: 3px;
+  border: 2px solid color-mix(in oklab, var(--text) 70%, transparent);
+  background: transparent;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    transform 140ms ease;
+  transform: scale(1);
+}
+
+.base.active {
+  background: var(--accent-2);
+  border-color: transparent;
+  /* halo que ya no invadirá otras celdas */
+  box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent-2) 25%, transparent);
+  transform: scale(1.12);
+}
+
+/* Posiciones en la rejilla 3×3: 
+   fila,col: second↑, third←, first→, home↓ */
+.second { grid-column: 2; grid-row: 1; }
+.third  { grid-column: 1; grid-row: 2; }
+.first  { grid-column: 3; grid-row: 2; }
+.home   { grid-column: 2; grid-row: 3; rotate: 0deg; border-radius: 6px; }
+
+/* Etiquetas en bloque para no empujar */
+.field { display: grid; gap: 6px; margin-bottom: 10px; min-width: 0; }
+.field > label { font-weight: 700; }
+
+/* Log: scroll interno, sin crecer infinito */
+.log {
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 6px; /* evita barra encima del texto */
+}
+
+/* Panel lateral */
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;                                /* clave para cortar overflow */
+}
+
+/* Animación sutil al anotar */
+@keyframes pop {
+  from { transform: scale(0.9); opacity: .6; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.scored { animation: pop .18s ease-out; }
+
+/* Respeto accesibilidad de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .button, .scored { transition: none; animation: none; }
+}
+
+/* En anchos medianos+, fija 2 columnas con panel flexible */
+@container (min-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  }
+}
+
+/* En anchos grandes, deja respirar el panel pero con tope */
+@container (min-width: 1150px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  }
+}
