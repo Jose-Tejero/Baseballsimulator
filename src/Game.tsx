@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 import { Row } from "./components/ui/Row";
 import { Diamond } from "./components/ui/Diamond";
@@ -1204,105 +1204,30 @@ export default function Game() {
             {/* Controles */}
             <div style={{ display: "grid", gap: 10 }}>
               {/** Lineup real: toggle y manos de pitchers + lineup actual */}
-              <div className="card" style={{ padding: 12 }}>
-                <Toggle
-                  label="Usar lineup real (rates por PA)"
-                  checked={useLineup}
-                  onChange={setUseLineup}
-                />
-                {useLineup && (
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {anchorGamePk && (
-                      <div className="muted">{anchorInfo ?? `Juego ancla: ${anchorGamePk}`}</div>
-                    )}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                      <div className="field">
-                        <label>
-                          <strong>Mano lanzador HOME (defiende en ALTAS)</strong>
-                        </label>
-                        <select
-                          value={homePitcherHand}
-                          onChange={(e) => setHomePitcherHand(e.target.value as Hand)}
-                        >
-                          <option value="R">R</option>
-                          <option value="L">L</option>
-                        </select>
-                      </div>
-                      <div className="field">
-                        <label>
-                          <strong>Mano lanzador AWAY (defiende en BAJAS)</strong>
-                        </label>
-                        <select
-                          value={awayPitcherHand}
-                          onChange={(e) => setAwayPitcherHand(e.target.value as Hand)}
-                        >
-                          <option value="R">R</option>
-                          <option value="L">L</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <strong>Lineup al bate ahora:</strong>
-                      {(() => {
-                        const battingTop = gs.half === "top";
-                        const roster = battingTop ? awayBatRoster : homeBatRoster;
-                        const pHand: Hand = battingTop ? homePitcherHand : awayPitcherHand;
-                        const idx = battingTop ? idxAway : idxHome;
-                        const lineup = pHand === "L" ? roster.lineupVsL : roster.lineupVsR;
-                        if (!Array.isArray(lineup) || lineup.length === 0)
-                          return (
-                            <div className="muted">Sin lineup cargado para el equipo al bate.</div>
-                          );
-                        const cur = ((idx % lineup.length) + lineup.length) % lineup.length;
-                        return (
-                          <ol style={{ margin: 0, paddingLeft: 18 }}>
-                            {lineup.map((bid, i) => {
-                              const b = roster.players[bid];
-                              const is = i === cur;
-                              return (
-                                <li key={bid} style={{ fontWeight: is ? 700 : 400 }}>
-                                  {b?.name ?? bid}
-                                  {b?.hand ? ` (${b.hand})` : ""}
-                                </li>
-                              );
-                            })}
-                          </ol>
-                        );
-                      })()}
-                    </div>
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <button
-                          className="button secondary"
-                          disabled={!awayTeamId || loadingLineupAway}
-                          onClick={() => loadRealLineup("away")}
-                        >
-                          {loadingLineupAway ? "Cargando lineup AWAYâ‚¬Â¦" : "Cargar lineup real (AWAY)"}
-                        </button>
-                        <button
-                          className="button secondary"
-                          disabled={!homeTeamId || loadingLineupHome}
-                          onClick={() => loadRealLineup("home")}
-                        >
-                          {loadingLineupHome ? "Cargando lineup HOMEâ‚¬Â¦" : "Cargar lineup real (HOME)"}
-                        </button>
-                      </div>
-                      {awayLineupInfo && (
-                        <div className="muted">AWAY: {awayLineupInfo}</div>
-                      )}
-                      {homeLineupInfo && (
-                        <div className="muted">HOME: {homeLineupInfo}</div>
-                      )}
-                      {errLineupAway && (
-                        <div className="muted">AWAY: {errLineupAway}</div>
-                      )}
-                      {errLineupHome && (
-                        <div className="muted">HOME: {errLineupHome}</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              <LineupPanel
+                useLineup={useLineup}
+                setUseLineup={setUseLineup}
+                anchorGamePk={anchorGamePk}
+                anchorInfo={anchorInfo}
+                homePitcherHand={homePitcherHand}
+                setHomePitcherHand={setHomePitcherHand}
+                awayPitcherHand={awayPitcherHand}
+                setAwayPitcherHand={setAwayPitcherHand}
+                isTop={gs.half === "top"}
+                awayBatRoster={awayBatRoster}
+                homeBatRoster={homeBatRoster}
+                idxAway={idxAway}
+                idxHome={idxHome}
+                awayTeamId={awayTeamId}
+                homeTeamId={homeTeamId}
+                loadingLineupAway={loadingLineupAway}
+                loadingLineupHome={loadingLineupHome}
+                loadRealLineup={loadRealLineup}
+                awayLineupInfo={awayLineupInfo}
+                homeLineupInfo={homeLineupInfo}
+                errLineupAway={errLineupAway}
+                errLineupHome={errLineupHome}
+              />
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button
                   className="button"
