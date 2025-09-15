@@ -282,10 +282,10 @@ export default function Game() {
       };
       if (which === "home") {
         setHomeBatRoster(roster);
-        setHomeLineupInfo(`${info.side.toUpperCase()} vs prAAaAaAaaAAaAAasAAximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setHomeLineupInfo(`${info.side.toUpperCase()} vs proximo juego ${new Date(info.gameDate).toLocaleString()}`);
       } else {
         setAwayBatRoster(roster);
-        setAwayLineupInfo(`${info.side.toUpperCase()} vs prAAaAaAaaAAaAAasAAximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setAwayLineupInfo(`${info.side.toUpperCase()} vs proximo juego ${new Date(info.gameDate).toLocaleString()}`);
       }
     } catch (e: any) {
       // Fallback: intentar prediccin de lineup con juegos recientes
