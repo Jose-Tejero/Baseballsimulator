@@ -75,7 +75,7 @@ export function TeamModelPanel(props: {
       <div style={{ display: "grid", gap: 10 }}>
         <div className="field">
           <label>
-            <strong>AWAY sssssAA Equipo MLB</strong>
+            <strong>AWAY - Equipo MLB</strong>
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
             <select
@@ -105,7 +105,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("away", p.awayTeamId), p.loadRoster("away", p.awayTeamId))
               }
             >
-              {p.loadingAway ? "Cargando?sssssAA" : "Cargar"}
+              {p.loadingAway ? "Cargando?-" : "Cargar"}
             </button>
           </div>
           {p.errAway && <div className="muted">{p.errAway}</div>}
@@ -141,7 +141,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterAway || !p.awayTeamId}
                   onClick={() => typeof p.awayTeamId === "number" && p.loadRoster("away", p.awayTeamId)}
                 >
-                  {p.loadingRosterAway ? "CargandosssssssssssssssAA?sssssssssssssssAA" : "Refrescar roster"}
+                  {p.loadingRosterAway ? "Cargandossssssssss-?ssssssssss-" : "Refrescar roster"}
                 </button>
               </div>
             </div>
@@ -160,7 +160,7 @@ export function TeamModelPanel(props: {
 
         <div className="field">
           <label>
-            <strong>HOME sssssAA Equipo MLB</strong>
+            <strong>HOME - Equipo MLB</strong>
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
             <select
@@ -190,7 +190,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("home", p.homeTeamId), p.loadRoster("home", p.homeTeamId))
               }
             >
-              {p.loadingHome ? "Cargando?sssssAA" : "Cargar"}
+              {p.loadingHome ? "Cargando?-" : "Cargar"}
             </button>
           </div>
           {p.errHome && <div className="muted">{p.errHome}</div>}
@@ -225,7 +225,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterHome || !p.homeTeamId}
                   onClick={() => typeof p.homeTeamId === "number" && p.loadRoster("home", p.homeTeamId)}
                 >
-                  {p.loadingRosterHome ? "CargandosssssssssssssssAA?sssssssssssssssAA" : "Refrescar roster"}
+                  {p.loadingRosterHome ? "Cargandossssssssss-?ssssssssss-" : "Refrescar roster"}
                 </button>
               </div>
             </div>
@@ -263,37 +263,37 @@ export function TeamModelPanel(props: {
         </div>
       </div>
 
-      <Field label={`AWAY sssssAA AVG (0.150 - 0.400): ${p.avgAway.toFixed(3)}`}>
+      <Field label={`AWAY - AVG (0.150 - 0.400): ${p.avgAway.toFixed(3)}`}>
         <SteppedNumber value={p.avgAway} onChange={p.setAvgAway} min={0.15} max={0.4} step={0.001} decimals={3} ariaLabel="AVG Away" />
       </Field>
-      <Field label={`AWAY sssssAA OBP (0.250 - 0.500): ${p.obpAway.toFixed(3)}`}>
+      <Field label={`AWAY - OBP (0.250 - 0.500): ${p.obpAway.toFixed(3)}`}>
         <SteppedNumber value={p.obpAway} onChange={p.setObpAway} min={0.25} max={0.5} step={0.001} decimals={3} ariaLabel="OBP Away" />
       </Field>
-      <Field label={`AWAY sssssAA SLG (0.300 - 0.700): ${p.slgAway.toFixed(3)}`}>
+      <Field label={`AWAY - SLG (0.300 - 0.700): ${p.slgAway.toFixed(3)}`}>
         <SteppedNumber value={p.slgAway} onChange={p.setSlgAway} min={0.3} max={0.7} step={0.001} decimals={3} ariaLabel="SLG Away" />
       </Field>
-      <Field label={`AWAY sssssAA ERA (1.00 - 8.00): ${p.eraAway.toFixed(2)}`}>
+      <Field label={`AWAY - ERA (1.00 - 8.00): ${p.eraAway.toFixed(2)}`}>
         <SteppedNumber value={p.eraAway} onChange={p.setEraAway} min={1.0} max={8.0} step={0.01} decimals={2} ariaLabel="ERA Away" />
       </Field>
-      <Field label={`AWAY sssssAA WHIP (0.80 - 1.80): ${p.whipAway.toFixed(2)}`}>
+      <Field label={`AWAY - WHIP (0.80 - 1.80): ${p.whipAway.toFixed(2)}`}>
         <SteppedNumber value={p.whipAway} onChange={p.setWhipAway} min={0.8} max={1.8} step={0.01} decimals={2} ariaLabel="WHIP Away" />
       </Field>
 
       <hr style={{ opacity: 0.15, margin: "12px 0" }} />
 
-      <Field label={`HOME sssssAA AVG (0.150 - 0.400): ${p.avgHome.toFixed(3)}`}>
+      <Field label={`HOME - AVG (0.150 - 0.400): ${p.avgHome.toFixed(3)}`}>
         <SteppedNumber value={p.avgHome} onChange={p.setAvgHome} min={0.15} max={0.4} step={0.001} decimals={3} ariaLabel="AVG Home" />
       </Field>
-      <Field label={`HOME sssssAA OBP (0.250 - 0.500): ${p.obpHome.toFixed(3)}`}>
+      <Field label={`HOME - OBP (0.250 - 0.500): ${p.obpHome.toFixed(3)}`}>
         <SteppedNumber value={p.obpHome} onChange={p.setObpHome} min={0.25} max={0.5} step={0.001} decimals={3} ariaLabel="OBP Home" />
       </Field>
-      <Field label={`HOME sssssAA SLG (0.300 - 0.700): ${p.slgHome.toFixed(3)}`}>
+      <Field label={`HOME - SLG (0.300 - 0.700): ${p.slgHome.toFixed(3)}`}>
         <SteppedNumber value={p.slgHome} onChange={p.setSlgHome} min={0.3} max={0.7} step={0.001} decimals={3} ariaLabel="SLG Home" />
       </Field>
-      <Field label={`HOME sssssAA ERA (1.00 - 8.00): ${p.eraHome.toFixed(2)}`}>
+      <Field label={`HOME - ERA (1.00 - 8.00): ${p.eraHome.toFixed(2)}`}>
         <SteppedNumber value={p.eraHome} onChange={p.setEraHome} min={1.0} max={8.0} step={0.01} decimals={2} ariaLabel="ERA Home" />
       </Field>
-      <Field label={`HOME sssssAA WHIP (0.80 - 1.80): ${p.whipHome.toFixed(2)}`}>
+      <Field label={`HOME - WHIP (0.80 - 1.80): ${p.whipHome.toFixed(2)}`}>
         <SteppedNumber value={p.whipHome} onChange={p.setWhipHome} min={0.8} max={1.8} step={0.01} decimals={2} ariaLabel="WHIP Home" />
       </Field>
 
@@ -316,6 +316,7 @@ export function TeamModelPanel(props: {
 
 
                       // name handled via props elsewhere if needed
+
 
 
 
