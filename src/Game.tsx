@@ -7,7 +7,7 @@ import { Diamond } from "./components/ui/Diamond";
 // import { EraTrendCard } from "./components/ui/EraTrendCard";
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";
-import { EraTrendsPanel } from "./components/EraTrendsPanel";
+import { EraTrendsPanel } from "./components/EraTrendsPanel";`r`nimport { TeamModelPanel } from "./components/TeamModelPanel";
 import {
   applyEvent,
   initialState,
@@ -60,7 +60,7 @@ const reasonLabel: Record<string, string> = {
   regulation: "Final por reglamentarias",
   walkoff: "Walk-off",
   mercy: "Regla de misericordia",
-  maxInnings: "Lí­mite de entradas",
+  maxInnings: "LÃ­Â­mite de entradas",
   tieAllowed: "Empate permitido",
   forfeit: "Forfeit",
 };
@@ -210,7 +210,7 @@ export default function Game() {
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el próximo juego
+  // Anclaje por gamePk si ambos equipos comparten el prÃ³ximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -249,7 +249,7 @@ export default function Game() {
     which === "home" ? setErrLineupHome(null) : setErrLineupAway(null);
     try {
       const info = await getNextGameLineup(teamId, { daysAhead: 10, gameType: "R" });
-      if (!info.lineup.length) throw new Error("Lineup no disponible aún para el próximo juego");
+      if (!info.lineup.length) throw new Error("Lineup no disponible aÃºn para el prÃ³ximo juego");
       // Para cada bateador, obtener splits vs L/R
       const seasonForStats = season;
       const playerEntries = await Promise.all(
@@ -260,7 +260,7 @@ export default function Game() {
             getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
           ]);
           const pinfo = await getPlayerInfo(b.id).catch(() => null);
-          // Fallback overall si alguna split viene vací­a
+          // Fallback overall si alguna split viene vacÃ­Â­a
           let overall: PlayerHitting | null = null;
           if (!vsL.pa || !vsR.pa) {
             overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
@@ -283,10 +283,10 @@ export default function Game() {
       };
       if (which === "home") {
         setHomeBatRoster(roster);
-        setHomeLineupInfo(`${info.side.toUpperCase()} vs próximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setHomeLineupInfo(`${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
       } else {
         setAwayBatRoster(roster);
-        setAwayLineupInfo(`${info.side.toUpperCase()} vs próximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setAwayLineupInfo(`${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
       }
     } catch (e: any) {
       // Fallback: intentar prediccin de lineup con juegos recientes
@@ -426,7 +426,7 @@ export default function Game() {
           setHomeLineupInfo(`Prediccion anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupHome("Lineup no disponible aún para el próximo juego (HOME)");
+        setErrLineupHome("Lineup no disponible aÃºn para el prÃ³ximo juego (HOME)");
       }
       // AWAY
       if (Array.isArray(laway) && laway.length > 0) {
@@ -435,11 +435,11 @@ export default function Game() {
         setErrLineupAway(null);
         setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredAway) {
-          setErrLineupAway("Lineup no disponible; usando predicción basada en juegos recientes.");
-          setAwayLineupInfo(`Predicción anclada a gamePk ${gamePk}`);
+          setErrLineupAway("Lineup no disponible; usando predicciÃ³n basada en juegos recientes.");
+          setAwayLineupInfo(`PredicciÃ³n anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupAway("Lineup no disponible aún para el próximo juego (AWAY)");
+        setErrLineupAway("Lineup no disponible aÃºn para el prÃ³ximo juego (AWAY)");
       }
 
       // Probables y mano desde el mismo juego anclado
@@ -629,7 +629,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar selección o temporada
+  // Refrescar stats al cambiar selecciÃ³n o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       loadTeamStats("home", homeTeamId, season);
@@ -704,7 +704,7 @@ export default function Game() {
     }
   }, [awayTeamId, season, loadTeamStats, loadRoster]);
 
-  // Anclar automáticamente si ambos próximos gamePk coinciden
+  // Anclar automÃ¡ticamente si ambos prÃ³ximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -722,7 +722,7 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa predicción pero el anclaje dejó un mensaje genérico de no-disponible
+  // Armoniza mensajes cuando se usa predicciÃ³n pero el anclaje dejÃ³ un mensaje genÃ©rico de no-disponible
   useEffect(() => {
     if (awayLineupInfo && awayLineupInfo.includes("Prediccion") && errLineupAway && errLineupAway.startsWith("Lineup no disponible")) {
       setErrLineupAway("Lineup no disponible; usando prediccion basada en juegos recientes.");
@@ -745,9 +745,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos cálculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquí­ simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisiéramos, podríamos exponer el buff actual aquí
+        // Buff por tendencia (reutilizamos cÃ¡lculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃ­Â­ simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisiÃ©ramos, podrÃ­amos exponer el buff actual aquÃ­
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -1023,7 +1023,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar índice de lineup del lado que bateó
+    // Avanzar Ã­ndice de lineup del lado que bateÃ³
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1038,8 +1038,8 @@ export default function Game() {
     if (gsRef.current.status.over) return;
     const { next, logLine } = computeStepOnce(gsRef.current);
     next.rules = { ...rules };
-    setGs(next); // œ… solo setea estado
-    setLog((l) => [logLine, ...l].slice(0, 120)); // œ… log fuera del updater
+    setGs(next); // Å“â€¦ solo setea estado
+    setLog((l) => [logLine, ...l].slice(0, 120)); // Å“â€¦ log fuera del updater
   }
 
   function resetGame() {
@@ -1048,7 +1048,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulación ------------------
+  // ------------------ Auto-simulaciÃ³n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1065,7 +1065,7 @@ export default function Game() {
       next.rules = { ...rules };
 
       setGs(next);
-      gsRef.current = next; // œ… avanzamos la ref inmediatamente
+      gsRef.current = next; // Å“â€¦ avanzamos la ref inmediatamente
       setLog((l) => [logLine, ...l].slice(0, 120));
 
       if (
@@ -1105,14 +1105,14 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de Béisbol</h1>
+          <h1 className="h-hero">Simulador de BÃ©isbol</h1>
 
           <div className="card scoreboard">
             <header>
               <h2 className="h1">Baseball Simulator</h2>
               <p className="muted">
-                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} ·
-                Outs: {gs.outs} · Al bate:{" "}
+                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} Â·
+                Outs: {gs.outs} Â· Al bate:{" "}
                 <strong>{gs.half === "top" ? "Away" : "Home"}</strong>
               </p>
               <p className="muted">
@@ -1188,7 +1188,7 @@ export default function Game() {
                       : typeof whip === "number"
                       ? whip.toFixed(2)
                       : String(whip);
-                  return `Pitcheo vigente: ${teamLbl} · ${who} · ERA ${eraTxt} / WHIP ${whipTxt}`;
+                  return `Pitcheo vigente: ${teamLbl} Â· ${who} Â· ERA ${eraTxt} / WHIP ${whipTxt}`;
                 })()}
               </p>
             </header>
@@ -1278,14 +1278,14 @@ export default function Game() {
                           disabled={!awayTeamId || loadingLineupAway}
                           onClick={() => loadRealLineup("away")}
                         >
-                          {loadingLineupAway ? "Cargando lineup AWAY€¦" : "Cargar lineup real (AWAY)"}
+                          {loadingLineupAway ? "Cargando lineup AWAYâ‚¬Â¦" : "Cargar lineup real (AWAY)"}
                         </button>
                         <button
                           className="button secondary"
                           disabled={!homeTeamId || loadingLineupHome}
                           onClick={() => loadRealLineup("home")}
                         >
-                          {loadingLineupHome ? "Cargando lineup HOME€¦" : "Cargar lineup real (HOME)"}
+                          {loadingLineupHome ? "Cargando lineup HOMEâ‚¬Â¦" : "Cargar lineup real (HOME)"}
                         </button>
                       </div>
                       {awayLineupInfo && (
@@ -1332,7 +1332,7 @@ export default function Game() {
               <div className="card" style={{ padding: 12 }}>
                 <div className="field">
                   <label>
-                    <strong>Modo auto-simulación</strong>
+                    <strong>Modo auto-simulaciÃ³n</strong>
                   </label>
                   <select
                     value={mode}
@@ -1373,8 +1373,8 @@ export default function Game() {
             )}
           </div>
           <EraTrendsPanel
-            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` — ${awayStarterName}` : ""}`}
-            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` — ${homeStarterName}` : ""}`}
+            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` â€” ${awayStarterName}` : ""}`}
+            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` â€” ${homeStarterName}` : ""}`}
             away={{ seasonEra: awayStarterERA, seasonIPOuts: awayStarterIPOuts, teamEra: eraAway, series: awayStarterLog }}
             home={{ seasonEra: homeStarterERA, seasonIPOuts: homeStarterIPOuts, teamEra: eraHome, series: homeStarterLog }}
           />
@@ -1390,577 +1390,67 @@ export default function Game() {
 
           {/* Modelo AVG + ERA + OBP + SLG + por equipo */}
           <div className="card">
-            <h3 className="h2">
-              Modelo por equipo (AVG · OBP · SLG · ERA - WHIP)
-            </h3>
-
-            {/* MLB: Selectores de equipos y temporada */}
-            <div className="field">
-              <label>
-                <strong>Temporada MLB</strong>
-              </label>
-              <input
-                type="number"
-                min={2015}
-                max={2099}
-                value={season}
-                onChange={(e) => setSeason(Number(e.target.value) || season)}
-              />
-            </div>
-
-            <div style={{ display: "grid", gap: 10 }}>
-              <div className="field">
-                <label>
-                  <strong>AWAY €¢ Equipo MLB</strong>
-                </label>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: 8,
-                  }}
-                >
-                  <select
-                    value={awayTeamId}
-                    onChange={(e) => {
-                      const v =
-                        e.target.value === "" ? "" : Number(e.target.value);
-                      setAwayTeamId(v);
-                      if (v !== "" && !Number.isNaN(v as number)) {
-                        loadTeamStats("away", v as number);
-                        loadRoster("away", v as number);
-                      }
-                    }}
-                  >
-                    <option value="">Seleccionar equipo (AWAY)</option>
-                    {teams.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.abbreviation ? `${t.abbreviation} - ` : ""}
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="button secondary"
-                    disabled={loadingAway || !awayTeamId}
-                    onClick={() =>
-                      typeof awayTeamId === "number" &&
-                      (loadTeamStats("away", awayTeamId),
-                      loadRoster("away", awayTeamId))
-                    }
-                  >
-                    {loadingAway ? "Cargando€¦" : "Cargar"}
-                  </button>
-                </div>
-                {errAway && <div className="muted">{errAway}</div>}
-                {awayTeamId && (
-                  <div style={{ marginTop: 8 }}>
-                    <label>
-                      <strong>Abridor AWAY (6 entradas)</strong>
-                    </label>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto",
-                        gap: 8,
-                      }}
-                    >
-                      <select
-                        value={awayStarterId}
-                        onChange={(e) => {
-                          const v =
-                            e.target.value === "" ? "" : Number(e.target.value);
-                          setAwayStarterId(v);
-                          if (v !== "" && !Number.isNaN(v as number)) {
-                            loadStarterStats("away", v as number);
-                            const found = awayRoster.find(
-                              (p) => p.id === (v as number)
-                            );
-                            setAwayStarterName(found?.fullName ?? null);
-                          } else {
-                            setAwayStarterERA(null);
-                            setAwayStarterWHIP(null);
-                            setAwayStarterIPOuts(null);
-                            setAwayStarterName(null);
-                          }
-                        }}
-                      >
-                        <option value="">- Seleccionar pitcher (AWAY) -</option>
-                        {awayRoster.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.fullName}
-                            {p.primaryNumber ? ` #${p.primaryNumber}` : ""}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className="button secondary"
-                        disabled={loadingRosterAway || !awayTeamId}
-                        onClick={() =>
-                          typeof awayTeamId === "number" &&
-                          loadRoster("away", awayTeamId)
-                        }
-                      >
-                        {loadingRosterAway ? "Cargandoï¿½?ï¿½" : "Refrescar roster"}
-                      </button>
-                    </div>
-                    {(errRosterAway && (
-                      <div className="muted">{errRosterAway}</div>
-                    )) || (
-                      <div className="muted" style={{ marginTop: 4 }}>
-                        {awayStarterId !== "" ? (
-                          (() => {
-                            const IP0 = 50;
-                            const regressERA = (
-                              era: number,
-                              ipOuts: number | null,
-                              baseline: number,
-                              ip0: number
-                            ) => {
-                              if (
-                                typeof era !== "number" ||
-                                !Number.isFinite(era)
-                              )
-                                return baseline;
-                              if (
-                                typeof baseline !== "number" ||
-                                !Number.isFinite(baseline)
-                              )
-                                baseline = era;
-                              const ip =
-                                typeof ipOuts === "number" &&
-                                Number.isFinite(ipOuts)
-                                  ? ipOuts / 3
-                                  : 0;
-                              const w = ip <= 0 ? 0 : ip / (ip + ip0);
-                              const adj = w * era + (1 - w) * baseline;
-                              return Number.isFinite(adj) ? adj : era;
-                            };
-                            const raw = awayStarterERA ?? undefined;
-                            const adj =
-                              raw != null
-                                ? regressERA(
-                                    raw,
-                                    awayStarterIPOuts,
-                                    eraAway,
-                                    IP0
-                                  )
-                                : undefined;
-                            const ip =
-                              typeof awayStarterIPOuts === "number"
-                                ? awayStarterIPOuts / 3
-                                : undefined;
-                            const conf =
-                              ip != null
-                                ? Math.round((ip / (ip + IP0)) * 100)
-                                : undefined;
-                            const name =
-                              awayRoster.find((p) => p.id === awayStarterId)
-                                ?.fullName ?? "(sin nombre)";
-                            return (
-                              <>
-                                Abridor: {name} · 1 - 6: ERA {raw ?? " - "}
-                                {raw != null && adj != null
-                                  ? ` (ajustada ${adj.toFixed(2)}${
-                                      conf != null ? ", conf " + conf + "%" : ""
-                                    })`
-                                  : ""}
-                                {"  ·  "}
-                                WHIP {awayStarterWHIP ?? " - "}
-                                {"  ·  "}
-                                7+: ERA {eraAway.toFixed(2)} / WHIP{" "}
-                                {whipAway.toFixed(2)}
-                              </>
-                            );
-                          })()
-                        ) : (
-                          <>
-                            Sin abridor seleccionado · Usa ERA/WHIP del equipo
-                            todo el juego
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {awayStarterId === "" && awayProbableMsg && (
-                  <div className="muted" style={{ marginTop: 4 }}>
-                    {awayProbableMsg}
-                  </div>
-                )}
-                {awayStarterName && (
-                  <div className="muted" style={{ marginTop: 4 }}>
-                    Seleccionado: {awayStarterName}
-                  </div>
-                )}
-              </div>
-
-              <div className="field">
-                <label>
-                  <strong>HOME €¢ Equipo MLB</strong>
-                </label>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: 8,
-                  }}
-                >
-                  <select
-                    value={homeTeamId}
-                    onChange={(e) => {
-                      const v =
-                        e.target.value === "" ? "" : Number(e.target.value);
-                      setHomeTeamId(v);
-                      if (v !== "" && !Number.isNaN(v as number)) {
-                        loadTeamStats("home", v as number);
-                        loadRoster("home", v as number);
-                      }
-                    }}
-                  >
-                    <option value="">Seleccionar equipo (HOME)</option>
-                    {teams.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.abbreviation ? `${t.abbreviation} - ` : ""}
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    className="button secondary"
-                    disabled={loadingHome || !homeTeamId}
-                    onClick={() =>
-                      typeof homeTeamId === "number" &&
-                      (loadTeamStats("home", homeTeamId),
-                      loadRoster("home", homeTeamId))
-                    }
-                  >
-                    {loadingHome ? "Cargando€¦" : "Cargar"}
-                  </button>
-                </div>
-                {errHome && <div className="muted">{errHome}</div>}
-                {homeTeamId && (
-                  <div style={{ marginTop: 8 }}>
-                    <label>
-                      <strong>Abridor HOME (6 entradas)</strong>
-                    </label>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr auto",
-                        gap: 8,
-                      }}
-                    >
-                      <select
-                        value={homeStarterId}
-                        onChange={(e) => {
-                          const v =
-                            e.target.value === "" ? "" : Number(e.target.value);
-                          setHomeStarterId(v);
-                          if (v !== "" && !Number.isNaN(v as number)) {
-                            loadStarterStats("home", v as number);
-                            const found = homeRoster.find(
-                              (p) => p.id === (v as number)
-                            );
-                            setHomeStarterName(found?.fullName ?? null);
-                          } else {
-                            setHomeStarterERA(null);
-                            setHomeStarterWHIP(null);
-                            setHomeStarterIPOuts(null);
-                            setHomeStarterName(null);
-                          }
-                        }}
-                      >
-                        <option value="">- Seleccionar pitcher (HOME) -</option>
-                        {homeRoster.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.fullName}
-                            {p.primaryNumber ? ` #${p.primaryNumber}` : ""}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        className="button secondary"
-                        disabled={loadingRosterHome || !homeTeamId}
-                        onClick={() =>
-                          typeof homeTeamId === "number" &&
-                          loadRoster("home", homeTeamId)
-                        }
-                      >
-                        {loadingRosterHome ? "Cargandoï¿½?ï¿½" : "Refrescar roster"}
-                      </button>
-                    </div>
-                    {(errRosterHome && (
-                      <div className="muted">{errRosterHome}</div>
-                    )) || (
-                      <div className="muted" style={{ marginTop: 4 }}>
-                        {homeStarterId !== "" ? (
-                          (() => {
-                            const IP0 = 50;
-                            const regressERA = (
-                              era: number,
-                              ipOuts: number | null,
-                              baseline: number,
-                              ip0: number
-                            ) => {
-                              if (
-                                typeof era !== "number" ||
-                                !Number.isFinite(era)
-                              )
-                                return baseline;
-                              if (
-                                typeof baseline !== "number" ||
-                                !Number.isFinite(baseline)
-                              )
-                                baseline = era;
-                              const ip =
-                                typeof ipOuts === "number" &&
-                                Number.isFinite(ipOuts)
-                                  ? ipOuts / 3
-                                  : 0;
-                              const w = ip <= 0 ? 0 : ip / (ip + ip0);
-                              const adj = w * era + (1 - w) * baseline;
-                              return Number.isFinite(adj) ? adj : era;
-                            };
-                            const raw = homeStarterERA ?? undefined;
-                            const adj =
-                              raw != null
-                                ? regressERA(
-                                    raw,
-                                    homeStarterIPOuts,
-                                    eraHome,
-                                    IP0
-                                  )
-                                : undefined;
-                            const ip =
-                              typeof homeStarterIPOuts === "number"
-                                ? homeStarterIPOuts / 3
-                                : undefined;
-                            const conf =
-                              ip != null
-                                ? Math.round((ip / (ip + IP0)) * 100)
-                                : undefined;
-                            const name =
-                              homeRoster.find((p) => p.id === homeStarterId)
-                                ?.fullName ?? "(sin nombre)";
-                            return (
-                              <>
-                                Abridor: {name} · 1 - 6: ERA {raw ?? " - "}
-                                {raw != null && adj != null
-                                  ? ` (ajustada ${adj.toFixed(2)}${
-                                      conf != null ? ", conf " + conf + "%" : ""
-                                    })`
-                                  : ""}
-                                {"  ·  "}
-                                WHIP {homeStarterWHIP ?? " - "}
-                                {"  ·  "}
-                                7+: ERA {eraHome.toFixed(2)} / WHIP{" "}
-                                {whipHome.toFixed(2)}
-                              </>
-                            );
-                          })()
-                        ) : (
-                          <>
-                            Sin abridor seleccionado · Usa ERA/WHIP del equipo
-                            todo el juego
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-                {homeStarterId === "" && homeProbableMsg && (
-                  <div className="muted" style={{ marginTop: 4 }}>
-                    {homeProbableMsg}
-                  </div>
-                )}
-                {homeStarterName && (
-                  <div className="muted" style={{ marginTop: 4 }}>
-                    Seleccionado: {homeStarterName}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Park Factors  -  aplican para ambos equipos */}
-            <div className="field">
-              <label>
-                <strong>Park Factors (Runs / HR)</strong>
-              </label>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 8,
-                }}
-              >
-                <div>
-                  <div className="muted" style={{ fontSize: ".9em" }}>
-                    Runs PF (0.80 - 1.20): {parkRunsPF.toFixed(2)}
-                  </div>
-                  <SteppedNumber
-                    value={parkRunsPF}
-                    onChange={setParkRunsPF}
-                    min={0.8}
-                    max={1.2}
-                    step={0.01}
-                    decimals={2}
-                    ariaLabel="Runs Park Factor"
-                  />
-                </div>
-                <div>
-                  <div className="muted" style={{ fontSize: ".9em" }}>
-                    HR PF (0.80 - 1.20): {parkHRPF.toFixed(2)}
-                  </div>
-                  <SteppedNumber
-                    value={parkHRPF}
-                    onChange={setParkHRPF}
-                    min={0.8}
-                    max={1.2}
-                    step={0.01}
-                    decimals={2}
-                    ariaLabel="HR Park Factor"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* AWAY (ALTA) */}
-            <Field label={`AWAY · AVG (0.150 - 0.400): ${avgAway.toFixed(3)}`}>
-              <SteppedNumber
-                value={avgAway}
-                onChange={setAvgAway}
-                min={0.15}
-                max={0.4}
-                step={0.001}
-                decimals={3}
-                ariaLabel="AVG Away"
-              />
-            </Field>
-            <Field label={`AWAY · OBP (0.250 - 0.500): ${obpAway.toFixed(3)}`}>
-              <SteppedNumber
-                value={obpAway}
-                onChange={setObpAway}
-                min={0.25}
-                max={0.5}
-                step={0.001}
-                decimals={3}
-                ariaLabel="OBP Away"
-              />
-            </Field>
-            <Field label={`AWAY · SLG (0.300 - 0.700): ${slgAway.toFixed(3)}`}>
-              <SteppedNumber
-                value={slgAway}
-                onChange={setSlgAway}
-                min={0.3}
-                max={0.7}
-                step={0.001}
-                decimals={3}
-                ariaLabel="SLG Away"
-              />
-            </Field>
-            <Field label={`AWAY · ERA (1.00 - 8.00): ${eraAway.toFixed(2)}`}>
-              <SteppedNumber
-                value={eraAway}
-                onChange={setEraAway}
-                min={1.0}
-                max={8.0}
-                step={0.01}
-                decimals={2}
-                ariaLabel="ERA Away"
-              />
-            </Field>
-            <Field label={`AWAY · WHIP (0.80 - 1.80): ${whipAway.toFixed(2)}`}>
-              <SteppedNumber
-                value={whipAway}
-                onChange={setWhipAway}
-                min={0.8}
-                max={1.8}
-                step={0.01}
-                decimals={2}
-                ariaLabel="WHIP Away"
-              />
-            </Field>
-
-            <hr style={{ opacity: 0.15, margin: "12px 0" }} />
-
-            {/* HOME (BAJA) */}
-            <Field label={`HOME · AVG (0.150 - 0.400): ${avgHome.toFixed(3)}`}>
-              <SteppedNumber
-                value={avgHome}
-                onChange={setAvgHome}
-                min={0.15}
-                max={0.4}
-                step={0.001}
-                decimals={3}
-                ariaLabel="AVG Home"
-              />
-            </Field>
-            <Field label={`HOME · OBP (0.250 - 0.500): ${obpHome.toFixed(3)}`}>
-              <SteppedNumber
-                value={obpHome}
-                onChange={setObpHome}
-                min={0.25}
-                max={0.5}
-                step={0.001}
-                decimals={3}
-                ariaLabel="OBP Home"
-              />
-            </Field>
-            <Field label={`HOME · SLG (0.300 - 0.700): ${slgHome.toFixed(3)}`}>
-              <SteppedNumber
-                value={slgHome}
-                onChange={setSlgHome}
-                min={0.3}
-                max={0.7}
-                step={0.001}
-                decimals={3}
-                ariaLabel="SLG Home"
-              />
-            </Field>
-            <Field label={`HOME · ERA (1.00 - 8.00): ${eraHome.toFixed(2)}`}>
-              <SteppedNumber
-                value={eraHome}
-                onChange={setEraHome}
-                min={1.0}
-                max={8.0}
-                step={0.01}
-                decimals={2}
-                ariaLabel="ERA Home"
-              />
-            </Field>
-            <Field label={`HOME · WHIP (0.80 - 1.80): ${whipHome.toFixed(2)}`}>
-              <SteppedNumber
-                value={whipHome}
-                onChange={setWhipHome}
-                min={0.8}
-                max={1.8}
-                step={0.01}
-                decimals={2}
-                ariaLabel="WHIP Home"
-              />
-            </Field>
-
-            {/* Vista de probabilidades de la mitad actual */}
-            <details>
-              <summary className="muted">
-                Ver probabilidades del bateador actual
-              </summary>
-              <div className="muted" style={{ marginTop: 8 }}>
-                <div>OUT: {currentProbs.OUT.toFixed(3)}</div>
-                <div>1B: {currentProbs["1B"].toFixed(3)}</div>
-                <div>2B: {currentProbs["2B"].toFixed(3)}</div>
-                <div>3B: {currentProbs["3B"].toFixed(3)}</div>
-                <div>HR: {currentProbs.HR.toFixed(3)}</div>
-                <div>
-                  Reach% (H+BB aprox): {(1 - currentProbs.OUT).toFixed(3)}
-                </div>
-                <div>BB: {currentProbs.BB.toFixed(3)}</div>
-                <div>HBP: {currentProbs.HBP.toFixed(3)}</div>
-              </div>
-            </details>
-          </div>
-
+          <TeamModelPanel
+            season={season}
+            setSeason={setSeason}
+            teams={teams}
+            awayTeamId={awayTeamId}
+            setAwayTeamId={setAwayTeamId}
+            homeTeamId={homeTeamId}
+            setHomeTeamId={setHomeTeamId}
+            loadingAway={loadingAway}
+            loadingHome={loadingHome}
+            errAway={errAway}
+            errHome={errHome}
+            loadTeamStats={loadTeamStats}
+            loadRoster={loadRoster}
+            awayRoster={awayRoster}
+            homeRoster={homeRoster}
+            loadingRosterAway={loadingRosterAway}
+            loadingRosterHome={loadingRosterHome}
+            errRosterAway={errRosterAway}
+            errRosterHome={errRosterHome}
+            awayStarterId={awayStarterId}
+            setAwayStarterId={setAwayStarterId}
+            homeStarterId={homeStarterId}
+            setHomeStarterId={setHomeStarterId}
+            loadStarterStats={loadStarterStats}
+            awayStarterERA={awayStarterERA}
+            awayStarterWHIP={awayStarterWHIP}
+            awayStarterIPOuts={awayStarterIPOuts}
+            homeStarterERA={homeStarterERA}
+            homeStarterWHIP={homeStarterWHIP}
+            homeStarterIPOuts={homeStarterIPOuts}
+            awayStarterName={awayStarterName}
+            homeStarterName={homeStarterName}
+            awayProbableMsg={awayProbableMsg}
+            homeProbableMsg={homeProbableMsg}
+            parkRunsPF={parkRunsPF}
+            setParkRunsPF={setParkRunsPF}
+            parkHRPF={parkHRPF}
+            setParkHRPF={setParkHRPF}
+            avgAway={avgAway}
+            setAvgAway={setAvgAway}
+            obpAway={obpAway}
+            setObpAway={setObpAway}
+            slgAway={slgAway}
+            setSlgAway={setSlgAway}
+            eraAway={eraAway}
+            setEraAway={setEraAway}
+            whipAway={whipAway}
+            setWhipAway={setWhipAway}
+            avgHome={avgHome}
+            setAvgHome={setAvgHome}
+            obpHome={obpHome}
+            setObpHome={setObpHome}
+            slgHome={slgHome}
+            setSlgHome={setSlgHome}
+            eraHome={eraHome}
+            setEraHome={setEraHome}
+            whipHome={whipHome}
+            setWhipHome={setWhipHome}
+            currentProbs={currentProbs}
+          />
           <div className="card">
             <h3 className="h2">Monte Carlo</h3>
             <div className="field">
@@ -2236,8 +1726,8 @@ export default function Game() {
         </h3>
         {buff.latest && (
           <div className="muted" style={{ fontSize: ".9em" }}>
-            Nivel (Holt): {buff.latest.level.toFixed(2)} · Tendencia:{" "}
-            {buff.latest.trend.toFixed(2)} · Buff: {buff.latest.buff.toFixed(3)}
+            Nivel (Holt): {buff.latest.level.toFixed(2)} Â· Tendencia:{" "}
+            {buff.latest.trend.toFixed(2)} Â· Buff: {buff.latest.buff.toFixed(3)}
           </div>
         )}
       </div>
@@ -2281,7 +1771,7 @@ function narratePlay(
   after: GameState
 ): string {
   // Inning/mitad antes de la jugada
-  const inningTxt = `${before.inning}ª ${
+  const inningTxt = `${before.inning}Âª ${
     before.half === "top" ? "Alta" : "Baja"
   }`;
   const team = before.half === "top" ? "Away" : "Home";
@@ -2297,14 +1787,14 @@ function narratePlay(
   }
   const outsTxt = `${outsShown} ${outsShown === 1 ? "out" : "outs"}`;
 
-  // Bases después de la jugada
+  // Bases despuÃ©s de la jugada
   const b = after.bases;
   const basesTxt =
     b.first || b.second || b.third
       ? [b.first && "1B", b.second && "2B", b.third && "3B"]
           .filter(Boolean)
           .join(", ")
-      : "bases vacías";
+      : "bases vacÃ­as";
 
   // Marcador
   const scoreTxt = `Home ${after.scoreHome}  -  Away ${after.scoreAway}`;
@@ -2312,21 +1802,21 @@ function narratePlay(
   // Texto base
   let line = `${inningTxt}: ${team} al bate. ${evDesc}. ${outsTxt}, ${basesTxt}, marcador ${scoreTxt}.`;
 
-  // Añadir nota de cambio de mitad
+  // AÃ±adir nota de cambio de mitad
   if (halfChanged) {
-    const nextInningTxt = `${after.inning}ª ${
+    const nextInningTxt = `${after.inning}Âª ${
       after.half === "top" ? "Alta" : "Baja"
     }`;
     line += ` Cambio de mitad: ${nextInningTxt}.`;
   }
 
-  // Detección de walk-off (Home gana en baja)
+  // DetecciÃ³n de walk-off (Home gana en baja)
   if (
     after.status.over &&
     after.status.winner === "home" &&
     before.half === "bottom"
   ) {
-    line += " ¡Walk-off! Se acaba el juego.";
+    line += " Â¡Walk-off! Se acaba el juego.";
   }
 
   return line;
@@ -2417,3 +1907,4 @@ function narratePlay(
     </div>
   );
 } */
+

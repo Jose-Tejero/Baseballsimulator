@@ -57,7 +57,7 @@ export function TeamModelPanel(props: {
   const p = props;
   return (
     <div className="card">
-      <h3 className="h2">Modelo por equipo (AVG � OBP � SLG � ERA - WHIP)</h3>
+      <h3 className="h2">Modelo por equipo (AVG - OBP - SLG - ERA - WHIP)</h3>
 
       <div className="field">
         <label>
@@ -75,7 +75,7 @@ export function TeamModelPanel(props: {
       <div style={{ display: "grid", gap: 10 }}>
         <div className="field">
           <label>
-            <strong>AWAY � Equipo MLB</strong>
+            <strong>AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ Equipo MLB</strong>
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
             <select
@@ -105,7 +105,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("away", p.awayTeamId), p.loadRoster("away", p.awayTeamId))
               }
             >
-              {p.loadingAway ? "Cargando?�" : "Cargar"}
+              {p.loadingAway ? "Cargando?ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½" : "Cargar"}
             </button>
           </div>
           {p.errAway && <div className="muted">{p.errAway}</div>}
@@ -122,7 +122,6 @@ export function TeamModelPanel(props: {
                     p.setAwayStarterId(v);
                     if (v !== "" && !Number.isNaN(v as number)) {
                       p.loadStarterStats("away", v as number);
-                      const found = p.awayRoster.find((rp) => rp.id === (v as number));
                       // name shown elsewhere via props
                     } else {
                       // reset via parent props handlers if needed
@@ -142,7 +141,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterAway || !p.awayTeamId}
                   onClick={() => typeof p.awayTeamId === "number" && p.loadRoster("away", p.awayTeamId)}
                 >
-                  {p.loadingRosterAway ? "Cargando���?���" : "Refrescar roster"}
+                  {p.loadingRosterAway ? "CargandoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½?ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½" : "Refrescar roster"}
                 </button>
               </div>
             </div>
@@ -161,7 +160,7 @@ export function TeamModelPanel(props: {
 
         <div className="field">
           <label>
-            <strong>HOME � Equipo MLB</strong>
+            <strong>HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ Equipo MLB</strong>
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
             <select
@@ -191,7 +190,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("home", p.homeTeamId), p.loadRoster("home", p.homeTeamId))
               }
             >
-              {p.loadingHome ? "Cargando?�" : "Cargar"}
+              {p.loadingHome ? "Cargando?ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½" : "Cargar"}
             </button>
           </div>
           {p.errHome && <div className="muted">{p.errHome}</div>}
@@ -213,7 +212,7 @@ export function TeamModelPanel(props: {
                     }
                   }}
                 >
-                  <option value=“”>- Seleccionar pitcher (HOME) -</option>
+                  <option value="">- Seleccionar pitcher (HOME) -</option>
                   {p.homeRoster.map((rp) => (
                     <option key={rp.id} value={rp.id}>
                       {rp.fullName}
@@ -226,7 +225,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterHome || !p.homeTeamId}
                   onClick={() => typeof p.homeTeamId === "number" && p.loadRoster("home", p.homeTeamId)}
                 >
-                  {p.loadingRosterHome ? "Cargando���?���" : "Refrescar roster"}
+                  {p.loadingRosterHome ? "CargandoÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½?ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½" : "Refrescar roster"}
                 </button>
               </div>
             </div>
@@ -264,37 +263,37 @@ export function TeamModelPanel(props: {
         </div>
       </div>
 
-      <Field label={`AWAY � AVG (0.150 - 0.400): ${p.avgAway.toFixed(3)}`}>
+      <Field label={`AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ AVG (0.150 - 0.400): ${p.avgAway.toFixed(3)}`}>
         <SteppedNumber value={p.avgAway} onChange={p.setAvgAway} min={0.15} max={0.4} step={0.001} decimals={3} ariaLabel="AVG Away" />
       </Field>
-      <Field label={`AWAY � OBP (0.250 - 0.500): ${p.obpAway.toFixed(3)}`}>
+      <Field label={`AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ OBP (0.250 - 0.500): ${p.obpAway.toFixed(3)}`}>
         <SteppedNumber value={p.obpAway} onChange={p.setObpAway} min={0.25} max={0.5} step={0.001} decimals={3} ariaLabel="OBP Away" />
       </Field>
-      <Field label={`AWAY � SLG (0.300 - 0.700): ${p.slgAway.toFixed(3)}`}>
+      <Field label={`AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ SLG (0.300 - 0.700): ${p.slgAway.toFixed(3)}`}>
         <SteppedNumber value={p.slgAway} onChange={p.setSlgAway} min={0.3} max={0.7} step={0.001} decimals={3} ariaLabel="SLG Away" />
       </Field>
-      <Field label={`AWAY � ERA (1.00 - 8.00): ${p.eraAway.toFixed(2)}`}>
+      <Field label={`AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ ERA (1.00 - 8.00): ${p.eraAway.toFixed(2)}`}>
         <SteppedNumber value={p.eraAway} onChange={p.setEraAway} min={1.0} max={8.0} step={0.01} decimals={2} ariaLabel="ERA Away" />
       </Field>
-      <Field label={`AWAY � WHIP (0.80 - 1.80): ${p.whipAway.toFixed(2)}`}>
+      <Field label={`AWAY ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ WHIP (0.80 - 1.80): ${p.whipAway.toFixed(2)}`}>
         <SteppedNumber value={p.whipAway} onChange={p.setWhipAway} min={0.8} max={1.8} step={0.01} decimals={2} ariaLabel="WHIP Away" />
       </Field>
 
       <hr style={{ opacity: 0.15, margin: "12px 0" }} />
 
-      <Field label={`HOME � AVG (0.150 - 0.400): ${p.avgHome.toFixed(3)}`}>
+      <Field label={`HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ AVG (0.150 - 0.400): ${p.avgHome.toFixed(3)}`}>
         <SteppedNumber value={p.avgHome} onChange={p.setAvgHome} min={0.15} max={0.4} step={0.001} decimals={3} ariaLabel="AVG Home" />
       </Field>
-      <Field label={`HOME � OBP (0.250 - 0.500): ${p.obpHome.toFixed(3)}`}>
+      <Field label={`HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ OBP (0.250 - 0.500): ${p.obpHome.toFixed(3)}`}>
         <SteppedNumber value={p.obpHome} onChange={p.setObpHome} min={0.25} max={0.5} step={0.001} decimals={3} ariaLabel="OBP Home" />
       </Field>
-      <Field label={`HOME � SLG (0.300 - 0.700): ${p.slgHome.toFixed(3)}`}>
+      <Field label={`HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ SLG (0.300 - 0.700): ${p.slgHome.toFixed(3)}`}>
         <SteppedNumber value={p.slgHome} onChange={p.setSlgHome} min={0.3} max={0.7} step={0.001} decimals={3} ariaLabel="SLG Home" />
       </Field>
-      <Field label={`HOME � ERA (1.00 - 8.00): ${p.eraHome.toFixed(2)}`}>
+      <Field label={`HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ ERA (1.00 - 8.00): ${p.eraHome.toFixed(2)}`}>
         <SteppedNumber value={p.eraHome} onChange={p.setEraHome} min={1.0} max={8.0} step={0.01} decimals={2} ariaLabel="ERA Home" />
       </Field>
-      <Field label={`HOME � WHIP (0.80 - 1.80): ${p.whipHome.toFixed(2)}`}>
+      <Field label={`HOME ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½ WHIP (0.80 - 1.80): ${p.whipHome.toFixed(2)}`}>
         <SteppedNumber value={p.whipHome} onChange={p.setWhipHome} min={0.8} max={1.8} step={0.01} decimals={2} ariaLabel="WHIP Home" />
       </Field>
 
@@ -315,3 +314,5 @@ export function TeamModelPanel(props: {
   );
 }
 
+
+                      // name handled via props elsewhere if needed
