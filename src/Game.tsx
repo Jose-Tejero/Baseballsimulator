@@ -259,7 +259,7 @@ export default function Game() {
             getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
           ]);
           const pinfo = await getPlayerInfo(b.id).catch(() => null);
-          // Fallback overall si alguna split viene vacsssAAa
+          // Fallback overall si alguna split viene vacias
           let overall: PlayerHitting | null = null;
           if (!vsL.pa || !vsR.pa) {
             overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
@@ -745,7 +745,7 @@ export default function Game() {
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
         // Buff por tendencia (reutilizamos csAAlculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aqusssAA simplificamos a neutro (0)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aqui simplificamos a neutro (0)
         const pfBuffTop = 1; // si quisisAAramos, podrsAAamos exponer el buff actual aqusAA
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
@@ -1110,8 +1110,8 @@ export default function Game() {
             <header>
               <h2 className="h1">Baseball Simulator</h2>
               <p className="muted">
-                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} ssAA
-                Outs: {gs.outs} ssAA Al bate:{" "}
+                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} -
+                Outs: {gs.outs} - Al bate:{" "}
                 <strong>{gs.half === "top" ? "Away" : "Home"}</strong>
               </p>
               <p className="muted">
@@ -1187,7 +1187,7 @@ export default function Game() {
                       : typeof whip === "number"
                       ? whip.toFixed(2)
                       : String(whip);
-                  return `Pitcheo vigente: ${teamLbl} ssAA ${who} ssAA ERA ${eraTxt} / WHIP ${whipTxt}`;
+                  return `Pitcheo vigente: ${teamLbl} - ${who} - ERA ${eraTxt} / WHIP ${whipTxt}`;
                 })()}
               </p>
             </header>
@@ -1624,6 +1624,7 @@ function narratePlay(
     </div>
   );
 } */
+
 
 
 
