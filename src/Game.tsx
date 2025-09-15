@@ -2266,7 +2266,7 @@ export default function Game() {
                         return withBuffedPitch(base, buff);
                       })(),
                       starterInnings: 6,
-                      park: { runsPF: parkRunsPF, hrPF: parkHRPF },
+                      park: { runsPF: parkRunsPF, hrPF: parkHRPF, homeAdvOnly: true },
                     }
                   );
                   setMcResult(res);
