@@ -1443,8 +1443,8 @@ export default function Game() {
         </h3>
         {buff.latest && (
           <div className="muted" style={{ fontSize: ".9em" }}>
-            Nivel (Holt): {buff.latest.level.toFixed(2)} ssAA Tendencia:{" "}
-            {buff.latest.trend.toFixed(2)} ssAA Buff: {buff.latest.buff.toFixed(3)}
+            Nivel (Holt): {buff.latest.level.toFixed(2)} - Tendencia:{" "}
+            {buff.latest.trend.toFixed(2)} - Buff: {buff.latest.buff.toFixed(3)}
           </div>
         )}
       </div>
@@ -1488,7 +1488,7 @@ function narratePlay(
   after: GameState
 ): string {
   // Inning/mitad antes de la jugada
-  const inningTxt = `${before.inning}ssAA ${
+  const inningTxt = `${before.inning} - ${
     before.half === "top" ? "Alta" : "Baja"
   }`;
   const team = before.half === "top" ? "Away" : "Home";
@@ -1504,14 +1504,14 @@ function narratePlay(
   }
   const outsTxt = `${outsShown} ${outsShown === 1 ? "out" : "outs"}`;
 
-  // Bases despusAAs de la jugada
+  // Bases despues de la jugada
   const b = after.bases;
   const basesTxt =
     b.first || b.second || b.third
       ? [b.first && "1B", b.second && "2B", b.third && "3B"]
           .filter(Boolean)
           .join(", ")
-      : "bases vacsAAas";
+      : "bases vacias";
 
   // Marcador
   const scoreTxt = `Home ${after.scoreHome}  -  Away ${after.scoreAway}`;
@@ -1519,21 +1519,21 @@ function narratePlay(
   // Texto base
   let line = `${inningTxt}: ${team} al bate. ${evDesc}. ${outsTxt}, ${basesTxt}, marcador ${scoreTxt}.`;
 
-  // sAAadir nota de cambio de mitad
+  // anadir nota de cambio de mitad
   if (halfChanged) {
-    const nextInningTxt = `${after.inning}ssAA ${
+    const nextInningTxt = `${after.inning} - ${
       after.half === "top" ? "Alta" : "Baja"
     }`;
     line += ` Cambio de mitad: ${nextInningTxt}.`;
   }
 
-  // DeteccisAAn de walk-off (Home gana en baja)
+  // Deteccion de walk-off (Home gana en baja)
   if (
     after.status.over &&
     after.status.winner === "home" &&
     before.half === "bottom"
   ) {
-    line += " ssAAWalk-off! Se acaba el juego.";
+    line += " Walk-off! Se acaba el juego.";
   }
 
   return line;
