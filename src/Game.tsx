@@ -209,7 +209,7 @@ export default function Game() {
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el prAAaAaAaaAAaAAasAAximo juego
+  // Anclaje por gamePk si ambos equipos comparten el prsAAximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -248,7 +248,7 @@ export default function Game() {
     which === "home" ? setErrLineupHome(null) : setErrLineupAway(null);
     try {
       const info = await getNextGameLineup(teamId, { daysAhead: 10, gameType: "R" });
-      if (!info.lineup.length) throw new Error("Lineup no disponible aAAaAaAaaAAaAAasAAn para el prAAaAaAaaAAaAAasAAximo juego");
+      if (!info.lineup.length) throw new Error("Lineup no disponible asAAn para el prsAAximo juego");
       // Para cada bateador, obtener splits vs L/R
       const seasonForStats = season;
       const playerEntries = await Promise.all(
@@ -259,7 +259,7 @@ export default function Game() {
             getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
           ]);
           const pinfo = await getPlayerInfo(b.id).catch(() => null);
-          // Fallback overall si alguna split viene vacAAaAaAaaAAaAAasAAAAaAAAasAAAAAaAAasAAa
+          // Fallback overall si alguna split viene vacsssAAa
           let overall: PlayerHitting | null = null;
           if (!vsL.pa || !vsR.pa) {
             overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
@@ -425,7 +425,7 @@ export default function Game() {
           setHomeLineupInfo(`Prediccion anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupHome("Lineup no disponible aAAaAaAaaAAaAAasAAn para el prAAaAaAaaAAaAAasAAximo juego (HOME)");
+        setErrLineupHome("Lineup no disponible asAAn para el prsAAximo juego (HOME)");
       }
       // AWAY
       if (Array.isArray(laway) && laway.length > 0) {
@@ -434,11 +434,11 @@ export default function Game() {
         setErrLineupAway(null);
         setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredAway) {
-          setErrLineupAway("Lineup no disponible; usando predicciAAaAaAaaAAaAAasAAn basada en juegos recientes.");
-          setAwayLineupInfo(`PredicciAAaAaAaaAAaAAasAAn anclada a gamePk ${gamePk}`);
+          setErrLineupAway("Lineup no disponible; usando prediccisAAn basada en juegos recientes.");
+          setAwayLineupInfo(`PrediccisAAn anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupAway("Lineup no disponible aAAaAaAaaAAaAAasAAn para el prAAaAaAaaAAaAAasAAximo juego (AWAY)");
+        setErrLineupAway("Lineup no disponible asAAn para el prsAAximo juego (AWAY)");
       }
 
       // Probables y mano desde el mismo juego anclado
@@ -628,7 +628,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar selecciAAaAaAaaAAaAAasAAn o temporada
+  // Refrescar stats al cambiar seleccisAAn o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       loadTeamStats("home", homeTeamId, season);
@@ -703,7 +703,7 @@ export default function Game() {
     }
   }, [awayTeamId, season, loadTeamStats, loadRoster]);
 
-  // Anclar automAAaAaAaaAAaAAasAAticamente si ambos prAAaAaAaaAAaAAasAAximos gamePk coinciden
+  // Anclar automsAAticamente si ambos prsAAximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -721,7 +721,7 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa predicciAAaAaAaaAAaAAasAAn pero el anclaje dejAAaAaAaaAAaAAasAA un mensaje genAAaAaAaaAAaAAasAArico de no-disponible
+  // Armoniza mensajes cuando se usa prediccisAAn pero el anclaje dejsAA un mensaje gensAArico de no-disponible
   useEffect(() => {
     if (awayLineupInfo && awayLineupInfo.includes("Prediccion") && errLineupAway && errLineupAway.startsWith("Lineup no disponible")) {
       setErrLineupAway("Lineup no disponible; usando prediccion basada en juegos recientes.");
@@ -744,9 +744,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos cAAaAaAaaAAaAAasAAlculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquAAaAaAaaAAaAAasAAAAaAAAasAAAAAaAAasAA simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisiAAaAaAaaAAaAAasAAramos, podrAAaAaAaaAAaAAasAAamos exponer el buff actual aquAAaAaAaaAAaAAasAA
+        // Buff por tendencia (reutilizamos csAAlculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aqusssAA simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisisAAramos, podrsAAamos exponer el buff actual aqusAA
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -1022,7 +1022,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar AAaAaAaaAAaAAasAAndice de lineup del lado que bateAAaAaAaaAAaAAasAA
+    // Avanzar sAAndice de lineup del lado que batesAA
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1037,8 +1037,8 @@ export default function Game() {
     if (gsRef.current.status.over) return;
     const { next, logLine } = computeStepOnce(gsRef.current);
     next.rules = { ...rules };
-    setGs(next); // AAaAAAasAAAAAAAAAaAAAAaAaAAAaAasAAAAAAAAasAAAAasAAAAaAAasAA solo setea estado
-    setLog((l) => [logLine, ...l].slice(0, 120)); // AAaAAAasAAAAAAAAAaAAAAaAaAAAaAasAAAAAAAAasAAAAasAAAAaAAasAA log fuera del updater
+    setGs(next); //   solo setea estado
+    setLog((l) => [logLine, ...l].slice(0, 120)); //   log fuera del updater
   }
 
   function resetGame() {
@@ -1047,7 +1047,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulaciAAaAaAaaAAaAAasAAn ------------------
+  // ------------------ Auto-simulacisAAn ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1064,7 +1064,7 @@ export default function Game() {
       next.rules = { ...rules };
 
       setGs(next);
-      gsRef.current = next; // AAaAAAasAAAAAAAAAaAAAAaAaAAAaAasAAAAAAAAasAAAAasAAAAaAAasAA avanzamos la ref inmediatamente
+      gsRef.current = next; //   avanzamos la ref inmediatamente
       setLog((l) => [logLine, ...l].slice(0, 120));
 
       if (
@@ -1104,14 +1104,14 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de BAAaAaAaaAAaAAasAAisbol</h1>
+          <h1 className="h-hero">Simulador de BsAAisbol</h1>
 
           <div className="card scoreboard">
             <header>
               <h2 className="h1">Baseball Simulator</h2>
               <p className="muted">
-                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} AAaAAAasAAAAAaAAasAA
-                Outs: {gs.outs} AAaAAAasAAAAAaAAasAA Al bate:{" "}
+                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} ssAA
+                Outs: {gs.outs} ssAA Al bate:{" "}
                 <strong>{gs.half === "top" ? "Away" : "Home"}</strong>
               </p>
               <p className="muted">
@@ -1187,7 +1187,7 @@ export default function Game() {
                       : typeof whip === "number"
                       ? whip.toFixed(2)
                       : String(whip);
-                  return `Pitcheo vigente: ${teamLbl} AAaAAAasAAAAAaAAasAA ${who} AAaAAAasAAAAAaAAasAA ERA ${eraTxt} / WHIP ${whipTxt}`;
+                  return `Pitcheo vigente: ${teamLbl} ssAA ${who} ssAA ERA ${eraTxt} / WHIP ${whipTxt}`;
                 })()}
               </p>
             </header>
@@ -1256,7 +1256,7 @@ export default function Game() {
               <div className="card" style={{ padding: 12 }}>
                 <div className="field">
                   <label>
-                    <strong>Modo auto-simulaciAAaAaAaaAAaAAasAAn</strong>
+                    <strong>Modo auto-simulacisAAn</strong>
                   </label>
                   <select
                     value={mode}
@@ -1297,8 +1297,8 @@ export default function Game() {
             )}
           </div>
           <EraTrendsPanel
-            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` AAaAasAAAAAAAAasAAAAasAAAAAAAAaAAAAasAA ${awayStarterName}` : ""}`}
-            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` AAaAasAAAAAAAAasAAAAasAAAAAAAAaAAAAasAA ${homeStarterName}` : ""}`}
+            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` - ${awayStarterName}` : ""}`}
+            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` - ${homeStarterName}` : ""}`}
             away={{ seasonEra: awayStarterERA, seasonIPOuts: awayStarterIPOuts, teamEra: eraAway, series: awayStarterLog }}
             home={{ seasonEra: homeStarterERA, seasonIPOuts: homeStarterIPOuts, teamEra: eraHome, series: homeStarterLog }}
           />
@@ -1443,8 +1443,8 @@ export default function Game() {
         </h3>
         {buff.latest && (
           <div className="muted" style={{ fontSize: ".9em" }}>
-            Nivel (Holt): {buff.latest.level.toFixed(2)} AAaAAAasAAAAAaAAasAA Tendencia:{" "}
-            {buff.latest.trend.toFixed(2)} AAaAAAasAAAAAaAAasAA Buff: {buff.latest.buff.toFixed(3)}
+            Nivel (Holt): {buff.latest.level.toFixed(2)} ssAA Tendencia:{" "}
+            {buff.latest.trend.toFixed(2)} ssAA Buff: {buff.latest.buff.toFixed(3)}
           </div>
         )}
       </div>
@@ -1488,7 +1488,7 @@ function narratePlay(
   after: GameState
 ): string {
   // Inning/mitad antes de la jugada
-  const inningTxt = `${before.inning}AAaAAAasAAAAAaAAasAA ${
+  const inningTxt = `${before.inning}ssAA ${
     before.half === "top" ? "Alta" : "Baja"
   }`;
   const team = before.half === "top" ? "Away" : "Home";
@@ -1504,14 +1504,14 @@ function narratePlay(
   }
   const outsTxt = `${outsShown} ${outsShown === 1 ? "out" : "outs"}`;
 
-  // Bases despuAAaAaAaaAAaAAasAAs de la jugada
+  // Bases despusAAs de la jugada
   const b = after.bases;
   const basesTxt =
     b.first || b.second || b.third
       ? [b.first && "1B", b.second && "2B", b.third && "3B"]
           .filter(Boolean)
           .join(", ")
-      : "bases vacAAaAaAaaAAaAAasAAas";
+      : "bases vacsAAas";
 
   // Marcador
   const scoreTxt = `Home ${after.scoreHome}  -  Away ${after.scoreAway}`;
@@ -1519,21 +1519,21 @@ function narratePlay(
   // Texto base
   let line = `${inningTxt}: ${team} al bate. ${evDesc}. ${outsTxt}, ${basesTxt}, marcador ${scoreTxt}.`;
 
-  // AAAaAaAaaAAaAAasAAadir nota de cambio de mitad
+  // sAAadir nota de cambio de mitad
   if (halfChanged) {
-    const nextInningTxt = `${after.inning}AAaAAAasAAAAAaAAasAA ${
+    const nextInningTxt = `${after.inning}ssAA ${
       after.half === "top" ? "Alta" : "Baja"
     }`;
     line += ` Cambio de mitad: ${nextInningTxt}.`;
   }
 
-  // DetecciAAaAaAaaAAaAAasAAn de walk-off (Home gana en baja)
+  // DeteccisAAn de walk-off (Home gana en baja)
   if (
     after.status.over &&
     after.status.winner === "home" &&
     before.half === "bottom"
   ) {
-    line += " AAaAAAasAAAAAaAAasAAWalk-off! Se acaba el juego.";
+    line += " ssAAWalk-off! Se acaba el juego.";
   }
 
   return line;
@@ -1624,6 +1624,8 @@ function narratePlay(
     </div>
   );
 } */
+
+
 
 
 
