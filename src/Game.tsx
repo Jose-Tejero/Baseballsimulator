@@ -39,7 +39,6 @@ import {
   getTeamRoster,
   getPlayerPitchingStats,
   getPlayerPitchingGameLog,
-  getNextProbablePitcher,
   getNextGameLineup,
   predictNextGameLineup,
   getGameLineup,
@@ -53,7 +52,12 @@ import {
   type RosterPlayer,
   type PlayerHitting,
 } from "./services/mlb";
-import { useTeams } from "./hooks/mlb";
+import {
+  useTeams,
+  useTeamSummary,
+  useRoster as useTeamRosterHook,
+  useProbable as useProbableHook,
+} from "./hooks/mlb";
 
 // (reasonLabel removido: no se usa en UI)
 
@@ -135,6 +139,120 @@ export default function Game() {
   useEffect(() => {
     gsRef.current = gs;
   }, [gs]);
+
+  // Hooks: equipos
+  const teamsState = useTeams(season);
+  useEffect(() => {
+    if (Array.isArray(teamsState.data)) setTeams(teamsState.data);
+  }, [teamsState.data]);
+
+  // Hooks: resumen de equipo (stats)
+  const homeSummaryState = useTeamSummary(
+    typeof homeTeamId === "number" ? homeTeamId : undefined,
+    season
+  );
+  const awaySummaryState = useTeamSummary(
+    typeof awayTeamId === "number" ? awayTeamId : undefined,
+    season
+  );
+  useEffect(() => {
+    setLoadingHome(!!homeSummaryState.loading);
+    setErrHome(homeSummaryState.error ?? null);
+    const s = homeSummaryState.data;
+    if (s) {
+      if (s.hitting.avg != null) setAvgHome(s.hitting.avg);
+      if (s.hitting.obp != null) setObpHome(s.hitting.obp);
+      if (s.hitting.slg != null) setSlgHome(s.hitting.slg);
+      if (s.pitching.era != null) setEraHome(s.pitching.era);
+      if (s.pitching.whip != null) setWhipHome(s.pitching.whip);
+    }
+  }, [homeSummaryState.data, homeSummaryState.loading, homeSummaryState.error]);
+  useEffect(() => {
+    setLoadingAway(!!awaySummaryState.loading);
+    setErrAway(awaySummaryState.error ?? null);
+    const s = awaySummaryState.data;
+    if (s) {
+      if (s.hitting.avg != null) setAvgAway(s.hitting.avg);
+      if (s.hitting.obp != null) setObpAway(s.hitting.obp);
+      if (s.hitting.slg != null) setSlgAway(s.hitting.slg);
+      if (s.pitching.era != null) setEraAway(s.pitching.era);
+      if (s.pitching.whip != null) setWhipAway(s.pitching.whip);
+    }
+  }, [awaySummaryState.data, awaySummaryState.loading, awaySummaryState.error]);
+
+  // Hooks: roster
+  const homeRosterState = useTeamRosterHook(
+    typeof homeTeamId === "number" ? homeTeamId : undefined,
+    season
+  );
+  const awayRosterState = useTeamRosterHook(
+    typeof awayTeamId === "number" ? awayTeamId : undefined,
+    season
+  );
+  useEffect(() => {
+    setLoadingRosterHome(!!homeRosterState.loading);
+    setErrRosterHome(homeRosterState.error ?? null);
+    const r = homeRosterState.data;
+    if (Array.isArray(r)) {
+      const byName = [...r].sort((a, b) => a.fullName.localeCompare(b.fullName));
+      const pitchers = byName.filter((p) => (p.positionCode ?? "").toUpperCase() === "P");
+      setHomeRoster(pitchers.length ? pitchers : byName);
+    }
+  }, [homeRosterState.data, homeRosterState.loading, homeRosterState.error]);
+  useEffect(() => {
+    setLoadingRosterAway(!!awayRosterState.loading);
+    setErrRosterAway(awayRosterState.error ?? null);
+    const r = awayRosterState.data;
+    if (Array.isArray(r)) {
+      const byName = [...r].sort((a, b) => a.fullName.localeCompare(b.fullName));
+      const pitchers = byName.filter((p) => (p.positionCode ?? "").toUpperCase() === "P");
+      setAwayRoster(pitchers.length ? pitchers : byName);
+    }
+  }, [awayRosterState.data, awayRosterState.loading, awayRosterState.error]);
+
+  // Hooks: probables (auto)
+  const homeProbableState = useProbableHook(
+    typeof homeTeamId === "number" ? homeTeamId : undefined,
+    { daysAhead: 10, gameType: "R" }
+  );
+  const awayProbableState = useProbableHook(
+    typeof awayTeamId === "number" ? awayTeamId : undefined,
+    { daysAhead: 10, gameType: "R" }
+  );
+  useEffect(() => {
+    if (homeProbableState.error) setHomeProbableMsg("No se pudo obtener probable");
+    const p = homeProbableState.data;
+    if (p) {
+      setHomeStarterId(p.id);
+      setHomeStarterName(p.fullName ?? null);
+      setHomeGamePk(p.gamePk ?? null);
+      setAnchorInfo(null);
+      if (homeProbableState.hand === "L" || homeProbableState.hand === "R")
+        setHomePitcherHand(homeProbableState.hand);
+      setHomeProbableMsg(null);
+      loadStarterStats("home", p.id, season);
+    } else if (!homeProbableState.loading && typeof homeTeamId === "number") {
+      setHomeProbableMsg("Sin probable anunciado");
+      setHomeGamePk(null);
+    }
+  }, [homeProbableState.data, homeProbableState.loading, homeProbableState.error, homeProbableState.hand, season]);
+  useEffect(() => {
+    if (awayProbableState.error) setAwayProbableMsg("No se pudo obtener probable");
+    const p = awayProbableState.data;
+    if (p) {
+      setAwayStarterId(p.id);
+      setAwayStarterName(p.fullName ?? null);
+      setAwayGamePk(p.gamePk ?? null);
+      setAnchorInfo(null);
+      if (awayProbableState.hand === "L" || awayProbableState.hand === "R")
+        setAwayPitcherHand(awayProbableState.hand);
+      setAwayProbableMsg(null);
+      loadStarterStats("away", p.id, season);
+    } else if (!awayProbableState.loading && typeof awayTeamId === "number") {
+      setAwayProbableMsg("Sin probable anunciado");
+      setAwayGamePk(null);
+    }
+  }, [awayProbableState.data, awayProbableState.loading, awayProbableState.error, awayProbableState.hand, season]);
 
   // ------------------ Lineup real (Paso 3) ------------------
   const [useLineup, setUseLineup] = useState(false);
@@ -630,11 +748,7 @@ export default function Game() {
     }
   }
 
-  // Cargar listado de equipos para la temporada
-  const teamsState = useTeams(season);
-  useEffect(() => {
-    if (Array.isArray(teamsState.data)) setTeams(teamsState.data);
-  }, [teamsState.data]);
+  // Cargar listado de equipos para la temporada (integrado arriba con hook)
 
   const loadTeamStats = useCallback(
     async (
@@ -780,77 +894,24 @@ export default function Game() {
   // Refrescar stats al cambiar selección o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
-      loadTeamStats("home", homeTeamId, season);
-      loadRoster("home", homeTeamId, season);
-      // Auto-cargar lineup real HOME
-      loadRealLineup("home");
+      // Reset: los hooks de summary/roster/probable se encargan del fetch
       setHomeStarterId("");
       setHomeStarterERA(null);
       setHomeStarterWHIP(null);
       setHomeStarterIPOuts(null);
       setHomeProbableMsg(null);
-      // Autoseleccionar probable pitcher HOME
-      getNextProbablePitcher(homeTeamId, { daysAhead: 10, gameType: "R" })
-        .then((pp) => {
-          if (pp && typeof pp.id === "number") {
-            setHomeStarterId(pp.id);
-            setHomeStarterName(pp.fullName ?? null);
-            setHomeGamePk(pp.gamePk ?? null);
-            setAnchorInfo(null);
-            loadStarterStats("home", pp.id, season);
-            // Autodetectar mano del abridor HOME
-            getPlayerInfo(pp.id)
-              .then((pi) => {
-                if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
-                  setHomePitcherHand(pi.pitchHand as Hand);
-              })
-              .catch(() => {});
-            setHomeProbableMsg(null);
-          } else {
-            setHomeProbableMsg("Sin probable anunciado");
-            setHomeGamePk(null);
-          }
-        })
-        .catch(() => setHomeProbableMsg("No se pudo obtener probable"));
     }
-  }, [homeTeamId, season, loadTeamStats, loadRoster]);
+  }, [homeTeamId, season]);
 
   useEffect(() => {
     if (awayTeamId && typeof awayTeamId === "number") {
-      loadTeamStats("away", awayTeamId, season);
-      loadRoster("away", awayTeamId, season);
-      // Auto-cargar lineup real AWAY
-      loadRealLineup("away");
       setAwayStarterId("");
       setAwayStarterERA(null);
       setAwayStarterWHIP(null);
       setAwayStarterIPOuts(null);
       setAwayProbableMsg(null);
-      // Autoseleccionar probable pitcher AWAY
-      getNextProbablePitcher(awayTeamId, { daysAhead: 10, gameType: "R" })
-        .then((pp) => {
-          if (pp && typeof pp.id === "number") {
-            setAwayStarterId(pp.id);
-            setAwayStarterName(pp.fullName ?? null);
-            setAwayGamePk(pp.gamePk ?? null);
-            setAnchorInfo(null);
-            loadStarterStats("away", pp.id, season);
-            // Autodetectar mano del abridor AWAY
-            getPlayerInfo(pp.id)
-              .then((pi) => {
-                if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
-                  setAwayPitcherHand(pi.pitchHand as Hand);
-              })
-              .catch(() => {});
-            setAwayProbableMsg(null);
-          } else {
-            setAwayProbableMsg("Sin probable anunciado");
-            setAwayGamePk(null);
-          }
-        })
-        .catch(() => setAwayProbableMsg("No se pudo obtener probable"));
     }
-  }, [awayTeamId, season, loadTeamStats, loadRoster]);
+  }, [awayTeamId, season]);
 
   // Anclar automáticamente si ambos próximos gamePk coinciden
   useEffect(() => {

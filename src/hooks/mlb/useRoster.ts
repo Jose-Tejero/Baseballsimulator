@@ -33,7 +33,7 @@ export function useRoster(teamId?: number | "", season?: number) {
       .then((data) => {
         if (aborted) return;
         cache.set(key, data);
-        setState({ data, loading: false, error: null, count: data.length });
+        setState({ data, loading: false, error: null, count: (data?.length ?? 0) });
       })
       .catch((e) => {
         if (aborted) return;
@@ -46,4 +46,3 @@ export function useRoster(teamId?: number | "", season?: number) {
 
   return state;
 }
-
