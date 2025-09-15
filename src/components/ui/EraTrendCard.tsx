@@ -37,7 +37,7 @@ export function EraTrendCard({
         <h3 className="h2" style={{ margin: 0 }}>{title}</h3>
         {buff.latest && (
           <div className="muted" style={{ fontSize: ".9em" }}>
-            Nivel (Holt): {buff.latest.level.toFixed(2)} A� Tendencia: {buff.latest.trend.toFixed(2)} A� Buff: {buff.latest.buff.toFixed(3)}
+            Nivel (Holt): {buff.latest.level.toFixed(2)} Tendencia: {buff.latest.trend.toFixed(2)} Buff: {buff.latest.buff.toFixed(3)}
           </div>
         )}
       </div>
