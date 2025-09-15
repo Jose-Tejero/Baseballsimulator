@@ -1,4 +1,4 @@
-﻿import type { Rules } from "../engine/baseball";
+import type { Rules } from "../engine/baseball";
 import { Field } from "./ui/Field";
 import { Toggle } from "./ui/Toggle";
 
@@ -23,8 +23,8 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
 
       <Toggle label="Entradas extra" checked={rules.enableExtraInnings} onChange={(v) => { setRules({ ...rules, enableExtraInnings: v }); syncRules(); }} />
 
-      <Toggle
-        label="Base running estocAstico"
+      <Toggle 
+        label="Base running estocástico"
         checked={(rules as any).stochasticBaseRunning ?? true}
         onChange={(v) => {
           setRules({ ...(rules as any), stochasticBaseRunning: v } as Rules);
@@ -34,11 +34,11 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
 
       <Toggle label="Permitir empates" checked={rules.allowTies} onChange={(v) => { setRules({ ...rules, allowTies: v }); syncRules(); }} />
 
-      <Field label={`LAmite de entradas extra: ${rules.maxInnings ?? "-"}`}>
+      <Field label={`Límite de entradas extra: ${rules.maxInnings ?? "-"}`}>
         <input
           type="number"
           min={rules.regulationInnings}
-          placeholder="vacAo = sin lAmite"
+          placeholder="vacío = sin límite"
           value={rules.maxInnings ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? null : Math.max(+e.target.value, rules.regulationInnings);
@@ -54,7 +54,7 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
         <input
           type="number"
           min={1}
-          placeholder="vacAo = off"
+          placeholder="vacío = off"
           value={rules.mercyDiff ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? undefined : Math.max(1, +e.target.value);
@@ -68,7 +68,7 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
         <input
           type="number"
           min={1}
-          placeholder="vacAo = off"
+          placeholder="vacío = off"
           value={rules.mercyInning ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? undefined : Math.max(1, +e.target.value);

@@ -105,7 +105,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("away", p.awayTeamId), p.loadRoster("away", p.awayTeamId))
               }
             >
-              {p.loadingAway ? "Cargando?-" : "Cargar"}
+              {p.loadingAway ? "Cargando…" : "Cargar"}
             </button>
           </div>
           {p.errAway && <div className="muted">{p.errAway}</div>}
@@ -141,7 +141,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterAway || !p.awayTeamId}
                   onClick={() => typeof p.awayTeamId === "number" && p.loadRoster("away", p.awayTeamId)}
                 >
-                  {p.loadingRosterAway ? "Cargandossssssssss-?ssssssssss-" : "Refrescar roster"}
+                  {p.loadingRosterAway ? "Cargando…" : "Refrescar roster"}
                 </button>
               </div>
             </div>
@@ -190,7 +190,7 @@ export function TeamModelPanel(props: {
                 (p.loadTeamStats("home", p.homeTeamId), p.loadRoster("home", p.homeTeamId))
               }
             >
-              {p.loadingHome ? "Cargando?-" : "Cargar"}
+              {p.loadingHome ? "Cargando…" : "Cargar"}
             </button>
           </div>
           {p.errHome && <div className="muted">{p.errHome}</div>}
@@ -225,7 +225,7 @@ export function TeamModelPanel(props: {
                   disabled={p.loadingRosterHome || !p.homeTeamId}
                   onClick={() => typeof p.homeTeamId === "number" && p.loadRoster("home", p.homeTeamId)}
                 >
-                  {p.loadingRosterHome ? "Cargandossssssssss-?ssssssssss-" : "Refrescar roster"}
+                  {p.loadingRosterHome ? "Cargando…" : "Refrescar roster"}
                 </button>
               </div>
             </div>

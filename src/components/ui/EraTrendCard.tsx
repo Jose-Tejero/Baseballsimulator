@@ -54,7 +54,7 @@ export function EraTrendCard({
         <div className="muted">Sin datos del abridor.</div>
       )}
       <div className="muted" style={{ marginTop: 6, fontSize: ".9em" }}>
-        Referencia del equipo (ERA): {Number.isFinite(teamEra) ? teamEra.toFixed(2) : "i?"}
+        Referencia del equipo (ERA): {Number.isFinite(teamEra) ? teamEra.toFixed(2) : "-"}
       </div>
     </div>
   );

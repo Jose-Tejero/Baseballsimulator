@@ -45,10 +45,10 @@ export function Scoreboard() {
   }
 
   return (
-    <section className="card scoreboard" aria-label="Marcador de bAisbol">
+    <section className="card scoreboard" aria-label="Marcador de béisbol">
       <header>
         <h1 className="h1">Baseball Simulator</h1>
-        <p className="muted">Inning {inning} A {top ? 'Alta' : 'Baja'} A Outs: {outs}</p>
+        <p className="muted">Inning {inning} - {top ? 'Alta' : 'Baja'} - Outs: {outs}</p>
       </header>
 
       <div className="teamRow">

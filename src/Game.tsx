@@ -1,7 +1,5 @@
-﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
-import { Row } from "./components/ui/Row";
-import { Diamond } from "./components/ui/Diamond";
 // import { EraTrendCard } from "./components/ui/EraTrendCard";
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";
@@ -9,6 +7,7 @@ import { EraTrendsPanel } from "./components/EraTrendsPanel";
 import { TeamModelPanel } from "./components/TeamModelPanel";
 import { MonteCarloPanel } from "./components/MonteCarloPanel";
 import { LineupPanel } from "./components/LineupPanel";
+import { ScoreboardPanel } from "./components/ScoreboardPanel";
 import {
   applyEvent,
   initialState,
@@ -16,6 +15,8 @@ import {
   rollEventFromProbs,
   eventProbsForHalf,
   adjustEventProbsWithPF,
+  monteCarlo,
+  monteCarloLineup,
   type GameState,
   type Rules,
   type Hand,
@@ -34,7 +35,6 @@ import {
   type GameERIP,
 } from "./engine/eraBuff";
 import {
-  getTeams,
   getTeamSummary,
   getTeamRoster,
   getPlayerPitchingStats,
@@ -53,16 +53,9 @@ import {
   type RosterPlayer,
   type PlayerHitting,
 } from "./services/mlb";
+import { useTeams } from "./hooks/mlb";
 
-// Traducciones bonitas de las razones del estado final
-const reasonLabel: Record<string, string> = {
-  regulation: "Final por reglamentarias",
-  walkoff: "Walk-off",
-  mercy: "Regla de misericordia",
-  maxInnings: "Limite de entradas",
-  tieAllowed: "Empate permitido",
-  forfeit: "Forfeit",
-};
+// (reasonLabel removido: no se usa en UI)
 
 export default function Game() {
   // ------------------ Estado de juego ------------------
@@ -108,7 +101,7 @@ export default function Game() {
   const [awayProbableMsg, setAwayProbableMsg] = useState<string | null>(null);
   const [homeProbableMsg, setHomeProbableMsg] = useState<string | null>(null);
 
-  const over = gs.status.over;
+  // const over = gs.status.over; // no se usa directamente
   const syncRules = () => setGs((prev) => ({ ...prev, rules: { ...rules } }));
 
   const [mcRuns, setMcRuns] = useState(200);
@@ -174,22 +167,78 @@ export default function Game() {
   function mkSampleRoster(team: "HOME" | "AWAY"): Roster {
     // Base aproximado MLB por PA; variado un poco por bateador
     const baseR = defaultRates(0.245, 0.085, 0.225, 0.032, 0.045, 0.004, 0.01);
-    const plus = (r: RateLine, d: Partial<RateLine>): RateLine => ({ ...r, ...d });
+    const plus = (r: RateLine, d: Partial<RateLine>): RateLine => ({
+      ...r,
+      ...d,
+    });
     const ps: Batter[] = [
-      mkBatter(`${team}-1`, team === "HOME" ? "H1" : "A1", "L", plus(baseR, { bb: 0.095, h: 0.26 })),
-      mkBatter(`${team}-2`, team === "HOME" ? "H2" : "A2", "R", plus(baseR, { h: 0.255, double: 0.05 })),
-      mkBatter(`${team}-3`, team === "HOME" ? "H3" : "A3", "R", plus(baseR, { hr: 0.05, h: 0.25 })),
-      mkBatter(`${team}-4`, team === "HOME" ? "H4" : "A4", "L", plus(baseR, { hr: 0.06, k: 0.24, h: 0.26 })),
-      mkBatter(`${team}-5`, team === "HOME" ? "H5" : "A5", "R", plus(baseR, { h: 0.24, double: 0.055 })),
-      mkBatter(`${team}-6`, team === "HOME" ? "H6" : "A6", "S", plus(baseR, { k: 0.2, bb: 0.09 })),
-      mkBatter(`${team}-7`, team === "HOME" ? "H7" : "A7", "R", plus(baseR, { h: 0.235 })),
-      mkBatter(`${team}-8`, team === "HOME" ? "H8" : "A8", "L", plus(baseR, { h: 0.225, k: 0.23 })),
-      mkBatter(`${team}-9`, team === "HOME" ? "H9" : "A9", "R", plus(baseR, { h: 0.22, bb: 0.075 })),
+      mkBatter(
+        `${team}-1`,
+        team === "HOME" ? "H1" : "A1",
+        "L",
+        plus(baseR, { bb: 0.095, h: 0.26 })
+      ),
+      mkBatter(
+        `${team}-2`,
+        team === "HOME" ? "H2" : "A2",
+        "R",
+        plus(baseR, { h: 0.255, double: 0.05 })
+      ),
+      mkBatter(
+        `${team}-3`,
+        team === "HOME" ? "H3" : "A3",
+        "R",
+        plus(baseR, { hr: 0.05, h: 0.25 })
+      ),
+      mkBatter(
+        `${team}-4`,
+        team === "HOME" ? "H4" : "A4",
+        "L",
+        plus(baseR, { hr: 0.06, k: 0.24, h: 0.26 })
+      ),
+      mkBatter(
+        `${team}-5`,
+        team === "HOME" ? "H5" : "A5",
+        "R",
+        plus(baseR, { h: 0.24, double: 0.055 })
+      ),
+      mkBatter(
+        `${team}-6`,
+        team === "HOME" ? "H6" : "A6",
+        "S",
+        plus(baseR, { k: 0.2, bb: 0.09 })
+      ),
+      mkBatter(
+        `${team}-7`,
+        team === "HOME" ? "H7" : "A7",
+        "R",
+        plus(baseR, { h: 0.235 })
+      ),
+      mkBatter(
+        `${team}-8`,
+        team === "HOME" ? "H8" : "A8",
+        "L",
+        plus(baseR, { h: 0.225, k: 0.23 })
+      ),
+      mkBatter(
+        `${team}-9`,
+        team === "HOME" ? "H9" : "A9",
+        "R",
+        plus(baseR, { h: 0.22, bb: 0.075 })
+      ),
     ];
     // Ajuste vsL levemente mejor para zurdos y peor para derechos (ejemplo simple)
     const adjVsL = (r: RateLine, handed: Hand): RateLine => {
-      if (handed === "L") return plus(r, { h: (r.h ?? 0) + 0.01, k: Math.max(0, (r.k ?? 0) - 0.01) });
-      if (handed === "R") return plus(r, { h: Math.max(0, (r.h ?? 0) - 0.01), k: (r.k ?? 0) + 0.01 });
+      if (handed === "L")
+        return plus(r, {
+          h: (r.h ?? 0) + 0.01,
+          k: Math.max(0, (r.k ?? 0) - 0.01),
+        });
+      if (handed === "R")
+        return plus(r, {
+          h: Math.max(0, (r.h ?? 0) - 0.01),
+          k: (r.k ?? 0) + 0.01,
+        });
       return r;
     };
     const players: Record<string, Batter> = {};
@@ -202,14 +251,18 @@ export default function Game() {
     return { players, lineupVsL: order, lineupVsR: order } as Roster;
   }
 
-  const [homeBatRoster, setHomeBatRoster] = useState<Roster>(() => mkSampleRoster("HOME"));
-  const [awayBatRoster, setAwayBatRoster] = useState<Roster>(() => mkSampleRoster("AWAY"));
+  const [homeBatRoster, setHomeBatRoster] = useState<Roster>(() =>
+    mkSampleRoster("HOME")
+  );
+  const [awayBatRoster, setAwayBatRoster] = useState<Roster>(() =>
+    mkSampleRoster("AWAY")
+  );
   const [homePitcherHand, setHomePitcherHand] = useState<Hand>("R"); // lanza en ALTAS
   const [awayPitcherHand, setAwayPitcherHand] = useState<Hand>("R"); // lanza en BAJAS
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el prsAAximo juego
+  // Anclaje por gamePk si ambos equipos comparten el próximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -247,28 +300,46 @@ export default function Game() {
     which === "home" ? setLoadingLineupHome(true) : setLoadingLineupAway(true);
     which === "home" ? setErrLineupHome(null) : setErrLineupAway(null);
     try {
-      const info = await getNextGameLineup(teamId, { daysAhead: 10, gameType: "R" });
-      if (!info.lineup.length) throw new Error("Lineup no disponible asAAn para el prsAAximo juego");
+      const info = await getNextGameLineup(teamId, {
+        daysAhead: 10,
+        gameType: "R",
+      });
+      if (!info.lineup.length)
+        throw new Error("Lineup no disponible aún para el próximo juego");
       // Para cada bateador, obtener splits vs L/R
       const seasonForStats = season;
       const playerEntries = await Promise.all(
         info.lineup.map(async (b) => {
           // Intentar splits por mano del pitcher
           const [vsL, vsR] = await Promise.all([
-            getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(() => ({} as PlayerHitting)),
-            getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
+            getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
+              () => ({} as PlayerHitting)
+            ),
+            getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
+              () => ({} as PlayerHitting)
+            ),
           ]);
           const pinfo = await getPlayerInfo(b.id).catch(() => null);
           // Fallback overall si alguna split viene vacias
           let overall: PlayerHitting | null = null;
           if (!vsL.pa || !vsR.pa) {
-            overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
+            overall = await getPlayerHittingStats(
+              b.id,
+              seasonForStats,
+              "R"
+            ).catch(() => ({} as PlayerHitting));
           }
           const mk = (s: PlayerHitting | null | undefined) =>
-            toRateLineFromHitting(s && s.pa ? s : overall ?? ({} as PlayerHitting));
+            toRateLineFromHitting(
+              s && s.pa ? s : overall ?? ({} as PlayerHitting)
+            );
           const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-          const handRaw = (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
-          const hand: Hand = handRaw === "L" || handRaw === "R" || handRaw === "S" ? handRaw : "R";
+          const handRaw =
+            (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
+          const hand: Hand =
+            handRaw === "L" || handRaw === "R" || handRaw === "S"
+              ? handRaw
+              : "R";
           return { id: String(b.id), name: b.fullName, hand, rates } as Batter;
         })
       );
@@ -282,34 +353,67 @@ export default function Game() {
       };
       if (which === "home") {
         setHomeBatRoster(roster);
-        setHomeLineupInfo(`${info.side.toUpperCase()} vs proximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setHomeLineupInfo(
+          `${info.side.toUpperCase()} vs próximo juego ${new Date(
+            info.gameDate
+          ).toLocaleString()}`
+        );
       } else {
         setAwayBatRoster(roster);
-        setAwayLineupInfo(`${info.side.toUpperCase()} vs proximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setAwayLineupInfo(
+          `${info.side.toUpperCase()} vs próximo juego ${new Date(
+            info.gameDate
+          ).toLocaleString()}`
+        );
       }
     } catch (e: any) {
-      // Fallback: intentar prediccin de lineup con juegos recientes
+      // Fallback: intentar predicción de lineup con juegos recientes
       try {
-        const pred = await predictNextGameLineup(teamId, { daysAhead: 10, recentLimit: 3, gameType: "R" });
+        const pred = await predictNextGameLineup(teamId, {
+          daysAhead: 10,
+          recentLimit: 3,
+          gameType: "R",
+        });
         if (pred.lineup && pred.lineup.length) {
           const seasonForStats = season;
           const playerEntries = await Promise.all(
             pred.lineup.map(async (b) => {
               const [vsL, vsR] = await Promise.all([
-                getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(() => ({} as PlayerHitting)),
-                getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
+                getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
+                  () => ({} as PlayerHitting)
+                ),
+                getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
+                  () => ({} as PlayerHitting)
+                ),
               ]);
               const pinfo = await getPlayerInfo(b.id).catch(() => null);
               let overall: PlayerHitting | null = null;
               if (!vsL.pa || !vsR.pa) {
-                overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
+                overall = await getPlayerHittingStats(
+                  b.id,
+                  seasonForStats,
+                  "R"
+                ).catch(() => ({} as PlayerHitting));
               }
               const mk = (s: PlayerHitting | null | undefined) =>
-                toRateLineFromHitting(s && s.pa ? s : overall ?? ({} as PlayerHitting));
+                toRateLineFromHitting(
+                  s && s.pa ? s : overall ?? ({} as PlayerHitting)
+                );
               const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-              const handRaw = (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
-              const hand: Hand = handRaw === "L" || handRaw === "R" || handRaw === "S" ? handRaw : "R";
-              return { id: String(b.id), name: b.fullName, hand, rates } as Batter;
+              const handRaw =
+                (b.batSide as Hand) ||
+                (pinfo?.batSide as Hand) ||
+                ("R" as Hand);
+              const hand: Hand =
+                handRaw === "L" || handRaw === "R" || handRaw === "S"
+                  ? handRaw
+                  : "R";
+              return {
+                id: String(b.id),
+                name: b.fullName,
+                hand,
+                rates,
+              } as Batter;
             })
           );
           const players: Record<string, Batter> = {};
@@ -322,12 +426,24 @@ export default function Game() {
           };
           if (which === "home") {
             setHomeBatRoster(roster);
-            setHomeLineupInfo(`Prediccion vs proximo juego ${new Date(pred.gameDate).toLocaleString()}`);
-            setErrLineupHome("Lineup no disponible; usando prediccion basada en juegos recientes.");
+            setHomeLineupInfo(
+              `Predicción vs próximo juego ${new Date(
+                pred.gameDate
+              ).toLocaleString()}`
+            );
+            setErrLineupHome(
+              "Lineup no disponible; usando predicción basada en juegos recientes."
+            );
           } else {
             setAwayBatRoster(roster);
-            setAwayLineupInfo(`Prediccion vs proximo juego ${new Date(pred.gameDate).toLocaleString()}`);
-            setErrLineupAway("Lineup no disponible; usando prediccion basada en juegos recientes.");
+            setAwayLineupInfo(
+              `Predicción vs próximo juego ${new Date(
+                pred.gameDate
+              ).toLocaleString()}`
+            );
+            setErrLineupAway(
+              "Lineup no disponible; usando predicción basada en juegos recientes."
+            );
           }
           return;
         }
@@ -336,7 +452,9 @@ export default function Game() {
       if (which === "home") setErrLineupHome(msg);
       else setErrLineupAway(msg);
     } finally {
-      which === "home" ? setLoadingLineupHome(false) : setLoadingLineupAway(false);
+      which === "home"
+        ? setLoadingLineupHome(false)
+        : setLoadingLineupAway(false);
     }
   }
 
@@ -363,28 +481,51 @@ export default function Game() {
       let awayTid: number | undefined;
       try {
         const teams = await getGameTeams(gamePk);
-        homeTid = typeof teams?.homeTeamId === "number" ? teams.homeTeamId : undefined;
-        awayTid = typeof teams?.awayTeamId === "number" ? teams.awayTeamId : undefined;
+        homeTid =
+          typeof teams?.homeTeamId === "number" ? teams.homeTeamId : undefined;
+        awayTid =
+          typeof teams?.awayTeamId === "number" ? teams.awayTeamId : undefined;
       } catch {}
       // Helper to build roster from lineup list
-      const buildRoster = async (arr: { id: number; fullName: string; batSide?: string }[]): Promise<Roster> => {
+      const buildRoster = async (
+        arr: { id: number; fullName: string; batSide?: string }[]
+      ): Promise<Roster> => {
         const batters: Batter[] = await Promise.all(
           arr.slice(0, 9).map(async (b) => {
             const [vsL, vsR] = await Promise.all([
-              getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(() => ({} as PlayerHitting)),
-              getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
+              getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
+                () => ({} as PlayerHitting)
+              ),
+              getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
+                () => ({} as PlayerHitting)
+              ),
             ]);
             const pinfo = await getPlayerInfo(b.id).catch(() => null);
             let overall: PlayerHitting | null = null;
             if (!vsL.pa || !vsR.pa) {
-              overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
+              overall = await getPlayerHittingStats(
+                b.id,
+                seasonForStats,
+                "R"
+              ).catch(() => ({} as PlayerHitting));
             }
             const mk = (s: PlayerHitting | null | undefined) =>
-              toRateLineFromHitting(s && s.pa ? s : overall ?? ({} as PlayerHitting));
+              toRateLineFromHitting(
+                s && s.pa ? s : overall ?? ({} as PlayerHitting)
+              );
             const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-            const handRaw = (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
-            const hand: Hand = handRaw === "L" || handRaw === "R" || handRaw === "S" ? handRaw : "R";
-            return { id: String(b.id), name: b.fullName, hand, rates } as Batter;
+            const handRaw =
+              (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
+            const hand: Hand =
+              handRaw === "L" || handRaw === "R" || handRaw === "S"
+                ? handRaw
+                : "R";
+            return {
+              id: String(b.id),
+              name: b.fullName,
+              hand,
+              rates,
+            } as Batter;
           })
         );
         const players: Record<string, Batter> = {};
@@ -393,8 +534,11 @@ export default function Game() {
         return { players, lineupVsL: orderIds, lineupVsR: orderIds } as Roster;
       };
 
-      // Si no hay lineup oficial, intentar prediccion por juegos recientes
-      if ((!Array.isArray(lhome) || lhome.length === 0) && typeof homeTid === "number") {
+      // Si no hay lineup oficial, intentar predicción por juegos recientes
+      if (
+        (!Array.isArray(lhome) || lhome.length === 0) &&
+        typeof homeTid === "number"
+      ) {
         try {
           const recent = await getRecentLineupsForTeam(homeTid, { limit: 3 });
           const pred = predictLineupFromRecent(recent);
@@ -404,7 +548,10 @@ export default function Game() {
           }
         } catch {}
       }
-      if ((!Array.isArray(laway) || laway.length === 0) && typeof awayTid === "number") {
+      if (
+        (!Array.isArray(laway) || laway.length === 0) &&
+        typeof awayTid === "number"
+      ) {
         try {
           const recentA = await getRecentLineupsForTeam(awayTid, { limit: 3 });
           const predA = predictLineupFromRecent(recentA);
@@ -421,11 +568,15 @@ export default function Game() {
         setErrLineupHome(null);
         setHomeLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredHome) {
-          setErrLineupHome("Lineup no disponible; usando prediccion basada en juegos recientes.");
-          setHomeLineupInfo(`Prediccion anclada a gamePk ${gamePk}`);
+          setErrLineupHome(
+            "Lineup no disponible; usando predicción basada en juegos recientes."
+          );
+          setHomeLineupInfo(`Predicción anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupHome("Lineup no disponible asAAn para el prsAAximo juego (HOME)");
+        setErrLineupHome(
+          "Lineup no disponible aún para el próximo juego (HOME)"
+        );
       }
       // AWAY
       if (Array.isArray(laway) && laway.length > 0) {
@@ -434,11 +585,15 @@ export default function Game() {
         setErrLineupAway(null);
         setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredAway) {
-          setErrLineupAway("Lineup no disponible; usando prediccisAAn basada en juegos recientes.");
-          setAwayLineupInfo(`PrediccisAAn anclada a gamePk ${gamePk}`);
+          setErrLineupAway(
+            "Lineup no disponible; usando predicción basada en juegos recientes."
+          );
+          setAwayLineupInfo(`Predicción anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupAway("Lineup no disponible asAAn para el prsAAximo juego (AWAY)");
+        setErrLineupAway(
+          "Lineup no disponible aún para el próximo juego (AWAY)"
+        );
       }
 
       // Probables y mano desde el mismo juego anclado
@@ -447,23 +602,26 @@ export default function Game() {
         if (gp?.home?.id) {
           getPlayerInfo(gp.home.id)
             .then((pi) => {
-              if (pi?.pitchHand === "L" || pi?.pitchHand === "R") setHomePitcherHand(pi.pitchHand as Hand);
+              if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
+                setHomePitcherHand(pi.pitchHand as Hand);
             })
             .catch(() => {});
         }
         if (gp?.away?.id) {
           getPlayerInfo(gp.away.id)
             .then((pi) => {
-              if (pi?.pitchHand === "L" || pi?.pitchHand === "R") setAwayPitcherHand(pi.pitchHand as Hand);
+              if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
+                setAwayPitcherHand(pi.pitchHand as Hand);
             })
             .catch(() => {});
         }
       } catch {
         // ignore; hands will remain as previously detected
       }
-
     } catch (e: any) {
-      const msg = e?.message ? String(e.message) : "Error al cargar lineups anclados";
+      const msg = e?.message
+        ? String(e.message)
+        : "Error al cargar lineups anclados";
       setErrLineupHome(msg);
       setErrLineupAway(msg);
     } finally {
@@ -473,19 +631,10 @@ export default function Game() {
   }
 
   // Cargar listado de equipos para la temporada
+  const teamsState = useTeams(season);
   useEffect(() => {
-    let cancelled = false;
-    getTeams(season)
-      .then((ts) => {
-        if (!cancelled) setTeams(ts);
-      })
-      .catch(() => {
-        if (!cancelled) setTeams([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [season]);
+    if (Array.isArray(teamsState.data)) setTeams(teamsState.data);
+  }, [teamsState.data]);
 
   const loadTeamStats = useCallback(
     async (
@@ -628,7 +777,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar seleccisAAn o temporada
+  // Refrescar stats al cambiar selección o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       loadTeamStats("home", homeTeamId, season);
@@ -703,7 +852,7 @@ export default function Game() {
     }
   }, [awayTeamId, season, loadTeamStats, loadRoster]);
 
-  // Anclar automsAAticamente si ambos prsAAximos gamePk coinciden
+  // Anclar automáticamente si ambos próximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -721,13 +870,27 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa prediccisAAn pero el anclaje dejsAA un mensaje gensAArico de no-disponible
+  // Armoniza mensajes cuando se usa predicción pero el anclaje deja un mensaje genérico de no-disponible
   useEffect(() => {
-    if (awayLineupInfo && awayLineupInfo.includes("Prediccion") && errLineupAway && errLineupAway.startsWith("Lineup no disponible")) {
-      setErrLineupAway("Lineup no disponible; usando prediccion basada en juegos recientes.");
+    if (
+      awayLineupInfo &&
+      awayLineupInfo.includes("Predicción") &&
+      errLineupAway &&
+      errLineupAway.startsWith("Lineup no disponible")
+    ) {
+      setErrLineupAway(
+        "Lineup no disponible; usando predicción basada en juegos recientes."
+      );
     }
-    if (homeLineupInfo && homeLineupInfo.includes("Prediccion") && errLineupHome && errLineupHome.startsWith("Lineup no disponible")) {
-      setErrLineupHome("Lineup no disponible; usando prediccion basada en juegos recientes.");
+    if (
+      homeLineupInfo &&
+      homeLineupInfo.includes("Predicción") &&
+      errLineupHome &&
+      errLineupHome.startsWith("Lineup no disponible")
+    ) {
+      setErrLineupHome(
+        "Lineup no disponible; usando predicción basada en juegos recientes."
+      );
     }
   }, [awayLineupInfo, errLineupAway, homeLineupInfo, errLineupHome]);
 
@@ -744,9 +907,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos csAAlculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aqui simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisisAAramos, podrsAAamos exponer el buff actual aqusAA
+        // Buff por tendencia (reutilizamos cálculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquí simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisiéramos, podríamos exponer el buff actual aquí
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -757,7 +920,15 @@ export default function Game() {
           : { runsPF: pfBuffBottom * pfParkBottom, hrPF: pfHRBottom };
         return adjustEventProbsWithPF(base, adj);
       }
-      return { OUT: 0.7, BB: 0.08, HBP: 0.01, "1B": 0.16, "2B": 0.04, "3B": 0.005, HR: 0.005 } as const;
+      return {
+        OUT: 0.7,
+        BB: 0.08,
+        HBP: 0.01,
+        "1B": 0.16,
+        "2B": 0.04,
+        "3B": 0.005,
+        HR: 0.005,
+      } as const;
     }
     // Confidence-adjusted ERA for starters using innings pitched
     const IP0 = 50; // prior weight in innings for regression-to-mean
@@ -1001,7 +1172,15 @@ export default function Game() {
           return adjustEventProbsWithPF(base, adj);
         }
         // fallback neutro
-        return { OUT: 0.7, BB: 0.08, HBP: 0.01, "1B": 0.16, "2B": 0.04, "3B": 0.005, HR: 0.005 } as const;
+        return {
+          OUT: 0.7,
+          BB: 0.08,
+          HBP: 0.01,
+          "1B": 0.16,
+          "2B": 0.04,
+          "3B": 0.005,
+          HR: 0.005,
+        } as const;
       }
       return eventProbsForHalf(
         next.half,
@@ -1022,7 +1201,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar sAAndice de lineup del lado que batesAA
+    // Avanzar índice de lineup del lado que batea
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1037,8 +1216,8 @@ export default function Game() {
     if (gsRef.current.status.over) return;
     const { next, logLine } = computeStepOnce(gsRef.current);
     next.rules = { ...rules };
-    setGs(next); //   solo setea estado
-    setLog((l) => [logLine, ...l].slice(0, 120)); //   log fuera del updater
+    setGs(next);
+    setLog((l) => [logLine, ...l].slice(0, 120));
   }
 
   function resetGame() {
@@ -1047,7 +1226,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulacisAAn ------------------
+  // ------------------ Auto-simulación ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1098,112 +1277,139 @@ export default function Game() {
     whipAway,
   ]);
 
+  // ------------------ Helpers (UI strings) ------------------
+  const statusLine = `Inning ${gs.inning} - ${
+    gs.half === "top" ? "Alta" : "Baja"
+  } - Outs: ${gs.outs} - Al bate: ${gs.half === "top" ? "Away" : "Home"}`;
+  const pitchLine = (() => {
+    const starterInnings = 6;
+    const isTop = gs.half === "top";
+    const teamLbl = isTop ? "Home" : "Away";
+    const useStarter = isTop
+      ? gs.inning <= starterInnings && homeStarterERA != null
+      : gs.inning <= starterInnings && awayStarterERA != null;
+    const IP0 = 50;
+    const regressERA = (
+      era: number,
+      ipOuts: number | null,
+      baseline: number,
+      ip0: number
+    ) => {
+      if (typeof era !== "number" || !Number.isFinite(era)) return baseline;
+      if (typeof baseline !== "number" || !Number.isFinite(baseline))
+        baseline = era;
+      const ip =
+        typeof ipOuts === "number" && Number.isFinite(ipOuts) ? ipOuts / 3 : 0;
+      const w = ip <= 0 ? 0 : ip / (ip + ip0);
+      const adj = w * era + (1 - w) * baseline;
+      return Number.isFinite(adj) ? adj : era;
+    };
+    const era = isTop
+      ? useStarter
+        ? regressERA(homeStarterERA as number, homeStarterIPOuts, eraHome, IP0)
+        : eraHome
+      : useStarter
+      ? regressERA(awayStarterERA as number, awayStarterIPOuts, eraAway, IP0)
+      : eraAway;
+    const whip = isTop
+      ? useStarter
+        ? homeStarterWHIP
+        : whipHome
+      : useStarter
+      ? awayStarterWHIP
+      : whipAway;
+    const name = isTop
+      ? homeRoster.find((p) => p.id === homeStarterId)?.fullName
+      : awayRoster.find((p) => p.id === awayStarterId)?.fullName;
+    const who = useStarter ? `Abridor${name ? `: ${name}` : ""}` : "Equipo";
+    const eraTxt =
+      era == null
+        ? "-"
+        : typeof era === "number"
+        ? era.toFixed(2)
+        : String(era);
+    const whipTxt =
+      whip == null
+        ? "-"
+        : typeof whip === "number"
+        ? whip.toFixed(2)
+        : String(whip);
+    return `Pitcheo vigente: ${teamLbl} - ${who} - ERA ${eraTxt} / WHIP ${whipTxt}`;
+  })();
+
   // ------------------ Render ------------------
   return (
     <main className="main">
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de Beisbol</h1>
+          <h1 className="h-hero">Simulador de Béisbol</h1>
 
-          <div className="card scoreboard">
-            <header>
-              <h2 className="h1">Baseball Simulator</h2>
-              <p className="muted">
-                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} -
-                Outs: {gs.outs} - Al bate:{" "}
-                <strong>{gs.half === "top" ? "Away" : "Home"}</strong>
-              </p>
-              <p className="muted">
-                {(() => {
-                  const starterInnings = 6;
-                  const isTop = gs.half === "top";
-                  const teamLbl = isTop ? "Home" : "Away";
-                  const useStarter = isTop
-                    ? gs.inning <= starterInnings && homeStarterERA != null
-                    : gs.inning <= starterInnings && awayStarterERA != null;
-                  // compute adjusted ERA for starters for display too
-                  const IP0 = 50;
-                  const regressERA = (
-                    era: number,
-                    ipOuts: number | null,
-                    baseline: number,
-                    ip0: number
-                  ) => {
-                    if (typeof era !== "number" || !Number.isFinite(era))
-                      return baseline;
-                    if (
-                      typeof baseline !== "number" ||
-                      !Number.isFinite(baseline)
-                    )
-                      baseline = era;
-                    const ip =
-                      typeof ipOuts === "number" && Number.isFinite(ipOuts)
-                        ? ipOuts / 3
-                        : 0;
-                    const w = ip <= 0 ? 0 : ip / (ip + ip0);
-                    const adj = w * era + (1 - w) * baseline;
-                    return Number.isFinite(adj) ? adj : era;
-                  };
-                  const era = isTop
-                    ? useStarter
-                      ? regressERA(
-                          homeStarterERA as number,
-                          homeStarterIPOuts,
-                          eraHome,
-                          IP0
-                        )
-                      : eraHome
-                    : useStarter
-                    ? regressERA(
-                        awayStarterERA as number,
-                        awayStarterIPOuts,
-                        eraAway,
-                        IP0
-                      )
-                    : eraAway;
-                  const whip = isTop
-                    ? useStarter
-                      ? homeStarterWHIP
-                      : whipHome
-                    : useStarter
-                    ? awayStarterWHIP
-                    : whipAway;
-                  const name = isTop
-                    ? homeRoster.find((p) => p.id === homeStarterId)?.fullName
-                    : awayRoster.find((p) => p.id === awayStarterId)?.fullName;
-                  const who = useStarter
-                    ? `Abridor${name ? `: ${name}` : ""}`
-                    : "Equipo";
-                  const eraTxt =
-                    era == null
-                      ? " - "
-                      : typeof era === "number"
-                      ? era.toFixed(2)
-                      : String(era);
-                  const whipTxt =
-                    whip == null
-                      ? " - "
-                      : typeof whip === "number"
-                      ? whip.toFixed(2)
-                      : String(whip);
-                  return `Pitcheo vigente: ${teamLbl} - ${who} - ERA ${eraTxt} / WHIP ${whipTxt}`;
-                })()}
-              </p>
-            </header>
+          <ScoreboardPanel
+            statusLine={statusLine}
+            pitchLine={pitchLine}
+            awayScore={gs.scoreAway}
+            homeScore={gs.scoreHome}
+            bases={gs.bases}
+          >
+            <div style={{ display: "grid", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="button" onClick={stepOnce}>
+                  Jugar 1 turno
+                </button>
+                {!auto ? (
+                  <>
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        setMode("free");
+                        setAuto(true);
+                      }}
+                    >
+                      Auto (libre)
+                    </button>
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        setMode("half");
+                        setAuto(true);
+                      }}
+                    >
+                      Auto (media)
+                    </button>
+                    <button
+                      className="button secondary"
+                      onClick={() => {
+                        setMode("game");
+                        setAuto(true);
+                      }}
+                    >
+                      Auto (juego)
+                    </button>
+                  </>
+                ) : (
+                  <button className="button" onClick={() => setAuto(false)}>
+                    Detener auto
+                  </button>
+                )}
+                <button className="button" onClick={resetGame}>
+                  Reset
+                </button>
+              </div>
+              <div className="field">
+                <label>
+                  <strong>Velocidad auto (ms por turno): {delay}</strong>
+                </label>
+                <input
+                  type="range"
+                  min={50}
+                  max={1500}
+                  step={50}
+                  value={delay}
+                  onChange={(e) => setDelay(Number(e.target.value))}
+                />
+              </div>
 
-            {/* Pizarra: Away arriba, Home abajo */}
-            <Row name="Away" value={gs.scoreAway} />
-            <Row name="Home" value={gs.scoreHome} />
-
-            <div>
-              <h3 className="h2">Bases</h3>
-              <Diamond bases={gs.bases} />
-            </div>
-
-            {/* Controles */}
-            <div style={{ display: "grid", gap: 10 }}>
-              {/** Lineup real: toggle y manos de pitchers + lineup actual */}
               <LineupPanel
                 useLineup={useLineup}
                 setUseLineup={setUseLineup}
@@ -1228,79 +1434,44 @@ export default function Game() {
                 errLineupAway={errLineupAway}
                 errLineupHome={errLineupHome}
               />
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  className="button"
-                  onClick={() => stepOnce()}
-                  disabled={over}
-                >
-                  Turno al bate
-                </button>
-
-                <button className="button secondary" onClick={resetGame}>
-                  Reiniciar
-                </button>
-
-                <button
-                  className="button"
-                  onClick={() => setAuto((a) => !a)}
-                  disabled={over}
-                  style={{
-                    background: auto ? "var(--accent-2)" : "var(--accent)",
-                  }}
-                >
-                  {auto ? "Pausar" : "Auto (Play)"}
-                </button>
+            </div>
+          </ScoreboardPanel>
+          <div className="card" style={{ padding: 12 }}>
+            <div className="h2">Abridores</div>
+            <div className="muted" style={{ display: "grid", gap: 6 }}>
+              <div>
+                <strong>AWAY</strong>: {awayStarterName ?? "-"} — ERA{" "}
+                {awayStarterERA != null ? awayStarterERA.toFixed(2) : "-"} /
+                WHIP{" "}
+                {awayStarterWHIP != null ? awayStarterWHIP.toFixed(2) : "-"}
               </div>
-
-              <div className="card" style={{ padding: 12 }}>
-                <div className="field">
-                  <label>
-                    <strong>Modo auto-simulacisAAn</strong>
-                  </label>
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value as typeof mode)}
-                  >
-                    <option value="free">Libre (turnos continuos)</option>
-                    <option value="half">Completar mitad (alta/baja)</option>
-                    <option value="game">Jugar hasta el final</option>
-                  </select>
-                </div>
-
-                <div className="field">
-                  <label>
-                    <strong>Velocidad: {delay} ms/turno</strong>
-                  </label>
-                  <input
-                    type="range"
-                    min={80}
-                    max={1500}
-                    step={10}
-                    value={delay}
-                    onChange={(e) => setDelay(Number(e.target.value))}
-                  />
-                </div>
+              <div>
+                <strong>HOME</strong>: {homeStarterName ?? "-"} — ERA{" "}
+                {homeStarterERA != null ? homeStarterERA.toFixed(2) : "-"} /
+                WHIP{" "}
+                {homeStarterWHIP != null ? homeStarterWHIP.toFixed(2) : "-"}
               </div>
             </div>
-
-            {over && (
-              <div className="card" style={{ marginTop: 12 }}>
-                <strong>Final del juego:</strong>{" "}
-                {gs.status.winner === "tie"
-                  ? "Empate"
-                  : gs.status.winner === "home"
-                  ? "Gana Home"
-                  : "Gana Away"}
-                {gs.status.reason ? `  -  ${reasonLabel[gs.status.reason]}` : ""}
-              </div>
-            )}
           </div>
           <EraTrendsPanel
-            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` - ${awayStarterName}` : ""}`}
-            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` - ${homeStarterName}` : ""}`}
-            away={{ seasonEra: awayStarterERA, seasonIPOuts: awayStarterIPOuts, teamEra: eraAway, series: awayStarterLog }}
-            home={{ seasonEra: homeStarterERA, seasonIPOuts: homeStarterIPOuts, teamEra: eraHome, series: homeStarterLog }}
+            awayTitle={`Tendencia ERA abridor AWAY${
+              awayStarterName ? ` - ${awayStarterName}` : ""
+            }`}
+            homeTitle={`Tendencia ERA abridor HOME${
+              homeStarterName ? ` - ${homeStarterName}` : ""
+            }`}
+            away={{
+              seasonEra: awayStarterERA,
+              seasonIPOuts: awayStarterIPOuts,
+              teamEra: eraAway,
+              series: awayStarterLog,
+            }}
+            home={{
+              seasonEra: homeStarterERA,
+              seasonIPOuts: homeStarterIPOuts,
+              teamEra: eraHome,
+              series: homeStarterLog,
+            }}
           />
         </section>
 
@@ -1311,6 +1482,8 @@ export default function Game() {
 
           {/* Reglas */}
           <RulesPanel rules={rules} setRules={setRules} syncRules={syncRules} />
+
+          {/* (LineupPanel se muestra bajo el marcador) */}
 
           {/* Modelo AVG + ERA + OBP + SLG + por equipo */}
           <TeamModelPanel
@@ -1377,21 +1550,233 @@ export default function Game() {
           <MonteCarloPanel
             mcRuns={mcRuns}
             setMcRuns={setMcRuns}
-            onRun={() => { setMcResult(mcResult); }}
+            onRun={() => {
+              try {
+                if (useLineup) {
+                  const mkSeasonPoint = (
+                    era: number | null,
+                    ipOuts: number | null
+                  ) => {
+                    if (era == null || !Number.isFinite(era))
+                      return null as any;
+                    if (
+                      ipOuts == null ||
+                      !Number.isFinite(ipOuts) ||
+                      ipOuts <= 0
+                    )
+                      return null as any;
+                    const ip = ipOuts / 3;
+                    const er = (era * ip) / 9;
+                    return { er, outs: ipOuts } as GameERIP;
+                  };
+                  const homeSeries =
+                    homeStarterLog && homeStarterLog.length
+                      ? homeStarterLog
+                      : (() => {
+                          const p = mkSeasonPoint(
+                            homeStarterERA,
+                            homeStarterIPOuts
+                          );
+                          return p ? [p] : [];
+                        })();
+                  const awaySeries =
+                    awayStarterLog && awayStarterLog.length
+                      ? awayStarterLog
+                      : (() => {
+                          const p = mkSeasonPoint(
+                            awayStarterERA,
+                            awayStarterIPOuts
+                          );
+                          return p ? [p] : [];
+                        })();
+                  const homeBuff = homeSeries.length
+                    ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
+                    : 0;
+                  const awayBuff = awaySeries.length
+                    ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
+                    : 0;
+                  const adjustTop = {
+                    runsPF: buffToRunsPF(homeBuff) * 1,
+                    hrPF: 1,
+                  };
+                  const adjustBottom = {
+                    runsPF: buffToRunsPF(awayBuff) * parkRunsPF,
+                    hrPF: parkHRPF,
+                  };
+                  const hands = {
+                    homePitcher: homePitcherHand,
+                    awayPitcher: awayPitcherHand,
+                  } as const;
+                  const r = monteCarloLineup(
+                    homeBatRoster,
+                    awayBatRoster,
+                    mcRuns,
+                    hands,
+                    rules,
+                    adjustTop,
+                    adjustBottom
+                  );
+                  setMcResult({
+                    runs: r.runs,
+                    homeWinPct: r.homeWinPct,
+                    awayWinPct: r.awayWinPct,
+                    tiePct: r.tiePct,
+                    avgHomeRuns: r.avgHomeRuns,
+                    avgAwayRuns: r.avgAwayRuns,
+                  });
+                } else {
+                  const IP0 = 50;
+                  const regressERA = (
+                    era: number | null,
+                    ipOuts: number | null,
+                    baseline: number,
+                    ip0: number
+                  ) => {
+                    if (era == null || !Number.isFinite(era)) return baseline;
+                    const ip =
+                      typeof ipOuts === "number" && Number.isFinite(ipOuts)
+                        ? ipOuts / 3
+                        : 0;
+                    const w = ip <= 0 ? 0 : ip / (ip + ip0);
+                    const adj = w * (era as number) + (1 - w) * baseline;
+                    return Number.isFinite(adj) ? adj : baseline;
+                  };
+                  const starterHome =
+                    homeStarterERA != null
+                      ? {
+                          ERA: regressERA(
+                            homeStarterERA,
+                            homeStarterIPOuts,
+                            eraHome,
+                            IP0
+                          ),
+                          WHIP: homeStarterWHIP ?? undefined,
+                        }
+                      : undefined;
+                  const starterAway =
+                    awayStarterERA != null
+                      ? {
+                          ERA: regressERA(
+                            awayStarterERA,
+                            awayStarterIPOuts,
+                            eraAway,
+                            IP0
+                          ),
+                          WHIP: awayStarterWHIP ?? undefined,
+                        }
+                      : undefined;
+                  const mkSeasonPoint2 = (
+                    era: number | null,
+                    ipOuts: number | null
+                  ) => {
+                    if (era == null || !Number.isFinite(era))
+                      return null as any;
+                    if (
+                      ipOuts == null ||
+                      !Number.isFinite(ipOuts) ||
+                      ipOuts <= 0
+                    )
+                      return null as any;
+                    const ip = ipOuts / 3;
+                    const er = (era * ip) / 9;
+                    return { er, outs: ipOuts } as GameERIP;
+                  };
+                  const homeSeries =
+                    homeStarterLog && homeStarterLog.length
+                      ? homeStarterLog
+                      : (() => {
+                          const p = mkSeasonPoint2(
+                            homeStarterERA,
+                            homeStarterIPOuts
+                          );
+                          return p ? [p] : [];
+                        })();
+                  const awaySeries =
+                    awayStarterLog && awayStarterLog.length
+                      ? awayStarterLog
+                      : (() => {
+                          const p = mkSeasonPoint2(
+                            awayStarterERA,
+                            awayStarterIPOuts
+                          );
+                          return p ? [p] : [];
+                        })();
+                  const homeBuff = starterHome
+                    ? homeSeries.length
+                      ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
+                      : 0
+                    : 0;
+                  const awayBuff = starterAway
+                    ? awaySeries.length
+                      ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
+                      : 0
+                    : 0;
+                  const starters = {
+                    starterInnings: 6,
+                    starterHome: starterHome
+                      ? withBuffedPitch(starterHome, homeBuff)
+                      : undefined,
+                    starterAway: starterAway
+                      ? withBuffedPitch(starterAway, awayBuff)
+                      : undefined,
+                    park: {
+                      runsPF: parkRunsPF,
+                      hrPF: parkHRPF,
+                      homeAdvOnly: true,
+                    },
+                  } as const;
+                  const r = monteCarlo(
+                    {
+                      bat: { AVG: avgHome, OBP: obpHome, SLG: slgHome },
+                      pitch: { ERA: eraHome, WHIP: whipHome },
+                    },
+                    {
+                      bat: { AVG: avgAway, OBP: obpAway, SLG: slgAway },
+                      pitch: { ERA: eraAway, WHIP: whipAway },
+                    },
+                    mcRuns,
+                    rules,
+                    starters
+                  );
+                  setMcResult({
+                    runs: r.runs,
+                    homeWinPct: r.homeWinPct,
+                    awayWinPct: r.awayWinPct,
+                    tiePct: r.tiePct,
+                    avgHomeRuns: r.avgHomeRuns,
+                    avgAwayRuns: r.avgAwayRuns,
+                  });
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }}
             mcResult={mcResult}
             rules={rules}
-            homeLabel={(typeof homeTeamId === "number" ? (teams.find(t=>t.id===homeTeamId)?.abbreviation ? `${teams.find(t=>t.id===homeTeamId)?.abbreviation} - ${teams.find(t=>t.id===homeTeamId)?.name}` : teams.find(t=>t.id===homeTeamId)?.name) : "(HOME manual)") || "(HOME)"}
-            awayLabel={(typeof awayTeamId === "number" ? (teams.find(t=>t.id===awayTeamId)?.abbreviation ? `${teams.find(t=>t.id===awayTeamId)?.abbreviation} - ${teams.find(t=>t.id===awayTeamId)?.name}` : teams.find(t=>t.id===awayTeamId)?.name) : "(AWAY manual)") || "(AWAY)"}
+            homeLabel={
+              (typeof homeTeamId === "number"
+                ? teams.find((t) => t.id === homeTeamId)?.abbreviation
+                  ? `${
+                      teams.find((t) => t.id === homeTeamId)?.abbreviation
+                    } - ${teams.find((t) => t.id === homeTeamId)?.name}`
+                  : teams.find((t) => t.id === homeTeamId)?.name
+                : "(HOME manual)") || "(HOME)"
+            }
+            awayLabel={
+              (typeof awayTeamId === "number"
+                ? teams.find((t) => t.id === awayTeamId)?.abbreviation
+                  ? `${
+                      teams.find((t) => t.id === awayTeamId)?.abbreviation
+                    } - ${teams.find((t) => t.id === awayTeamId)?.name}`
+                  : teams.find((t) => t.id === awayTeamId)?.name
+                : "(AWAY manual)") || "(AWAY)"
+            }
           />
         </aside>
       </div>
     </main>
   );
 }
-
-
-
-
 
 /* function EraTrendCard_OLD({
   title,
@@ -1541,9 +1926,6 @@ function narratePlay(
 
 /* UI helpers */
 
-
-
-
 /* moved to components/ui/SteppedNumber */
 /* function SteppedNumber({
   value,
@@ -1624,10 +2006,3 @@ function narratePlay(
     </div>
   );
 } */
-
-
-
-
-
-
-
