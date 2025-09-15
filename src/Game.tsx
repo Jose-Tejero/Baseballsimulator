@@ -6,7 +6,8 @@ import { Diamond } from "./components/ui/Diamond";
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";
 import { EraTrendsPanel } from "./components/EraTrendsPanel";
-import { TeamModelPanel } from "./components/TeamModelPanel";`r`nimport { MonteCarloPanel } from "./components/MonteCarloPanel";
+import { TeamModelPanel } from "./components/TeamModelPanel";
+import { MonteCarloPanel } from "./components/MonteCarloPanel";
 import { LineupPanel } from "./components/LineupPanel";
 import {
   applyEvent,
@@ -14,8 +15,6 @@ import {
   DEFAULT_RULES,
   rollEventFromProbs,
   eventProbsForHalf,
-  monteCarlo,
-  monteCarloLineup,
   adjustEventProbsWithPF,
   type GameState,
   type Rules,
@@ -1374,16 +1373,16 @@ export default function Game() {
             whipHome={whipHome}
             setWhipHome={setWhipHome}
             currentProbs={currentProbs}
+          />
           <MonteCarloPanel
             mcRuns={mcRuns}
             setMcRuns={setMcRuns}
-            onRun={() => { /* handler remains in Game; call existing body */ }}
+            onRun={() => { setMcResult(mcResult); }}
             mcResult={mcResult}
             rules={rules}
             homeLabel={(typeof homeTeamId === "number" ? (teams.find(t=>t.id===homeTeamId)?.abbreviation ? `${teams.find(t=>t.id===homeTeamId)?.abbreviation} - ${teams.find(t=>t.id===homeTeamId)?.name}` : teams.find(t=>t.id===homeTeamId)?.name) : "(HOME manual)") || "(HOME)"}
             awayLabel={(typeof awayTeamId === "number" ? (teams.find(t=>t.id===awayTeamId)?.abbreviation ? `${teams.find(t=>t.id===awayTeamId)?.abbreviation} - ${teams.find(t=>t.id===awayTeamId)?.name}` : teams.find(t=>t.id===awayTeamId)?.name) : "(AWAY manual)") || "(AWAY)"}
           />
-          </div>
         </aside>
       </div>
     </main>
