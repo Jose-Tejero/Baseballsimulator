@@ -1,13 +1,12 @@
 ﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { Field } from "./components/ui/Field";
-import { Toggle } from "./components/ui/Toggle";
-import { SteppedNumber } from "./components/ui/SteppedNumber";
+// UI helpers now used via panels
 import { Row } from "./components/ui/Row";
 import { Diamond } from "./components/ui/Diamond";
 // import { EraTrendCard } from "./components/ui/EraTrendCard";
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";
-import { EraTrendsPanel } from "./components/EraTrendsPanel";`r`nimport { TeamModelPanel } from "./components/TeamModelPanel";
+import { EraTrendsPanel } from "./components/EraTrendsPanel";
+import { TeamModelPanel } from "./components/TeamModelPanel";
 import {
   applyEvent,
   initialState,
@@ -1389,7 +1388,6 @@ export default function Game() {
           <RulesPanel rules={rules} setRules={setRules} syncRules={syncRules} />
 
           {/* Modelo AVG + ERA + OBP + SLG + por equipo */}
-          <div className="card">
           <TeamModelPanel
             season={season}
             setSeason={setSeason}
