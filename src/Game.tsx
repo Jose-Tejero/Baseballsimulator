@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 import { Row } from "./components/ui/Row";
 import { Diamond } from "./components/ui/Diamond";
@@ -59,7 +59,7 @@ const reasonLabel: Record<string, string> = {
   regulation: "Final por reglamentarias",
   walkoff: "Walk-off",
   mercy: "Regla de misericordia",
-  maxInnings: "LÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­mite de entradas",
+  maxInnings: "Limite de entradas",
   tieAllowed: "Empate permitido",
   forfeit: "Forfeit",
 };
