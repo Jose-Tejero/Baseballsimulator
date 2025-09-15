@@ -1104,7 +1104,7 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de BsAAisbol</h1>
+          <h1 className="h-hero">Simulador de Beisbol</h1>
 
           <div className="card scoreboard">
             <header>
