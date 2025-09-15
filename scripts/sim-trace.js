@@ -1,4 +1,4 @@
-// Play-by-play simulation for 3 innings using engine-equivalent logic (no imports)
+﻿// Play-by-play simulation for 3 innings using engine-equivalent logic (no imports)
 // Deterministic via seeded PRNG so results are reproducible.
 
 // ---------- PRNG (deterministic) ----------
@@ -102,7 +102,7 @@ function advanceRunners(gs, basesToAdvance) {
         b.third = true;
         b.first = false;
       } else {
-        // third occupied → that runner already scored in earlier branch
+        // third occupied a†’ that runner already scored in earlier branch
         b.first = false;
       }
     }
@@ -374,7 +374,7 @@ function simulateWithTrace(home, away, rules = DEFAULT_RULES, seed = 12345) {
     const before = `Inning ${gs.inning} ${gs.half === "top" ? "alta" : "baja"} | Outs ${gs.outs} | Bases ${formatBases(gs.bases)}`;
     const desc = applyEvent(gs, ev);
     const after = `Marcador A:${gs.scoreAway} - H:${gs.scoreHome}`;
-    log.push(`${before} → ${desc}. ${after}`);
+    log.push(`${before} a†’ ${desc}. ${after}`);
     if (gs.status.over) break;
     // optional: cap by regulation innings
     if (gs.inning > rules.regulationInnings + 1) break; // safety
@@ -396,4 +396,5 @@ const away = {
 const { log, gs } = simulateWithTrace(home, away, DEFAULT_RULES, 20250908);
 for (const line of log) console.log(line);
 console.log(`Final: Away ${gs.scoreAway} - Home ${gs.scoreHome} | Winner: ${gs.status.winner ?? "pending"}${gs.status.reason ? " (" + gs.status.reason + ")" : ""}`);
+
 

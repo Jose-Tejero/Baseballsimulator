@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 import { Row } from "./components/ui/Row";
 import { Diamond } from "./components/ui/Diamond";
@@ -209,7 +209,7 @@ export default function Game() {
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego
+  // Anclaje por gamePk si ambos equipos comparten el prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -248,7 +248,7 @@ export default function Game() {
     which === "home" ? setErrLineupHome(null) : setErrLineupAway(null);
     try {
       const info = await getNextGameLineup(teamId, { daysAhead: 10, gameType: "R" });
-      if (!info.lineup.length) throw new Error("Lineup no disponible aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºn para el prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego");
+      if (!info.lineup.length) throw new Error("Lineup no disponible aAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚Aºn para el prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego");
       // Para cada bateador, obtener splits vs L/R
       const seasonForStats = season;
       const playerEntries = await Promise.all(
@@ -259,7 +259,7 @@ export default function Game() {
             getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(() => ({} as PlayerHitting)),
           ]);
           const pinfo = await getPlayerInfo(b.id).catch(() => null);
-          // Fallback overall si alguna split viene vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­a
+          // Fallback overall si alguna split viene vacAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­a
           let overall: PlayerHitting | null = null;
           if (!vsL.pa || !vsR.pa) {
             overall = await getPlayerHittingStats(b.id, seasonForStats, "R").catch(() => ({} as PlayerHitting));
@@ -282,10 +282,10 @@ export default function Game() {
       };
       if (which === "home") {
         setHomeBatRoster(roster);
-        setHomeLineupInfo(`${info.side.toUpperCase()} vs prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setHomeLineupInfo(`${info.side.toUpperCase()} vs prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
       } else {
         setAwayBatRoster(roster);
-        setAwayLineupInfo(`${info.side.toUpperCase()} vs prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
+        setAwayLineupInfo(`${info.side.toUpperCase()} vs prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego ${new Date(info.gameDate).toLocaleString()}`);
       }
     } catch (e: any) {
       // Fallback: intentar prediccin de lineup con juegos recientes
@@ -425,7 +425,7 @@ export default function Game() {
           setHomeLineupInfo(`Prediccion anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupHome("Lineup no disponible aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºn para el prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego (HOME)");
+        setErrLineupHome("Lineup no disponible aAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚Aºn para el prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego (HOME)");
       }
       // AWAY
       if (Array.isArray(laway) && laway.length > 0) {
@@ -434,11 +434,11 @@ export default function Game() {
         setErrLineupAway(null);
         setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredAway) {
-          setErrLineupAway("Lineup no disponible; usando predicciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n basada en juegos recientes.");
-          setAwayLineupInfo(`PredicciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n anclada a gamePk ${gamePk}`);
+          setErrLineupAway("Lineup no disponible; usando predicciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n basada en juegos recientes.");
+          setAwayLineupInfo(`PredicciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n anclada a gamePk ${gamePk}`);
         }
       } else {
-        setErrLineupAway("Lineup no disponible aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºn para el prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo juego (AWAY)");
+        setErrLineupAway("Lineup no disponible aAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚Aºn para el prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximo juego (AWAY)");
       }
 
       // Probables y mano desde el mismo juego anclado
@@ -628,7 +628,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar selecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n o temporada
+  // Refrescar stats al cambiar selecciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       loadTeamStats("home", homeTeamId, season);
@@ -703,7 +703,7 @@ export default function Game() {
     }
   }, [awayTeamId, season, loadTeamStats, loadRoster]);
 
-  // Anclar automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticamente si ambos prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximos gamePk coinciden
+  // Anclar automAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¡ticamente si ambos prAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -721,7 +721,7 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa predicciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n pero el anclaje dejÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ un mensaje genÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rico de no-disponible
+  // Armoniza mensajes cuando se usa predicciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n pero el anclaje dejAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³ un mensaje genAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A©rico de no-disponible
   useEffect(() => {
     if (awayLineupInfo && awayLineupInfo.includes("Prediccion") && errLineupAway && errLineupAway.startsWith("Lineup no disponible")) {
       setErrLineupAway("Lineup no disponible; usando prediccion basada en juegos recientes.");
@@ -744,9 +744,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­ simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ramos, podrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­amos exponer el buff actual aquÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­
+        // Buff por tendencia (reutilizamos cAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¡lculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­ simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisiAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A©ramos, podrAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­amos exponer el buff actual aquAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -1022,7 +1022,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­ndice de lineup del lado que bateÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³
+    // Avanzar AƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­ndice de lineup del lado que bateAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1037,8 +1037,8 @@ export default function Game() {
     if (gsRef.current.status.over) return;
     const { next, logLine } = computeStepOnce(gsRef.current);
     next.rules = { ...rules };
-    setGs(next); // ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ solo setea estado
-    setLog((l) => [logLine, ...l].slice(0, 120)); // ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ log fuera del updater
+    setGs(next); // AƒÆ’A†a€™AƒA¢A¢a€sA¬A‚A¦AƒÆ’A‚A¢AƒA¢A¢a‚¬A¡A‚A¬Aƒa€¦A¢a‚¬A“AƒÆ’A†a€™Aƒa€sA‚A¢AƒÆ’A‚A¢AƒA¢A¢a€sA¬A…A¡Aƒa€sA‚A¬AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¦ solo setea estado
+    setLog((l) => [logLine, ...l].slice(0, 120)); // AƒÆ’A†a€™AƒA¢A¢a€sA¬A‚A¦AƒÆ’A‚A¢AƒA¢A¢a‚¬A¡A‚A¬Aƒa€¦A¢a‚¬A“AƒÆ’A†a€™Aƒa€sA‚A¢AƒÆ’A‚A¢AƒA¢A¢a€sA¬A…A¡Aƒa€sA‚A¬AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¦ log fuera del updater
   }
 
   function resetGame() {
@@ -1047,7 +1047,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n ------------------
+  // ------------------ Auto-simulaciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1064,7 +1064,7 @@ export default function Game() {
       next.rules = { ...rules };
 
       setGs(next);
-      gsRef.current = next; // ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ avanzamos la ref inmediatamente
+      gsRef.current = next; // AƒÆ’A†a€™AƒA¢A¢a€sA¬A‚A¦AƒÆ’A‚A¢AƒA¢A¢a‚¬A¡A‚A¬Aƒa€¦A¢a‚¬A“AƒÆ’A†a€™Aƒa€sA‚A¢AƒÆ’A‚A¢AƒA¢A¢a€sA¬A…A¡Aƒa€sA‚A¬AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¦ avanzamos la ref inmediatamente
       setLog((l) => [logLine, ...l].slice(0, 120));
 
       if (
@@ -1104,14 +1104,14 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de BÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©isbol</h1>
+          <h1 className="h-hero">Simulador de BAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A©isbol</h1>
 
           <div className="card scoreboard">
             <header>
               <h2 className="h1">Baseball Simulator</h2>
               <p className="muted">
-                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                Outs: {gs.outs} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Al bate:{" "}
+                Inning {gs.inning} - {gs.half === "top" ? "Alta" : "Baja"} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A·
+                Outs: {gs.outs} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A· Al bate:{" "}
                 <strong>{gs.half === "top" ? "Away" : "Home"}</strong>
               </p>
               <p className="muted">
@@ -1187,7 +1187,7 @@ export default function Game() {
                       : typeof whip === "number"
                       ? whip.toFixed(2)
                       : String(whip);
-                  return `Pitcheo vigente: ${teamLbl} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ${who} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ERA ${eraTxt} / WHIP ${whipTxt}`;
+                  return `Pitcheo vigente: ${teamLbl} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A· ${who} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A· ERA ${eraTxt} / WHIP ${whipTxt}`;
                 })()}
               </p>
             </header>
@@ -1256,7 +1256,7 @@ export default function Game() {
               <div className="card" style={{ padding: 12 }}>
                 <div className="field">
                   <label>
-                    <strong>Modo auto-simulaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n</strong>
+                    <strong>Modo auto-simulaciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n</strong>
                   </label>
                   <select
                     value={mode}
@@ -1297,8 +1297,8 @@ export default function Game() {
             )}
           </div>
           <EraTrendsPanel
-            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ${awayStarterName}` : ""}`}
-            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ${homeStarterName}` : ""}`}
+            awayTitle={`Tendencia ERA abridor AWAY${awayStarterName ? ` AƒÆ’A†a€™Aƒa€sA‚A¢AƒÆ’A‚A¢AƒA¢A¢a€sA¬A…A¡Aƒa€sA‚A¬AƒÆ’A‚A¢AƒA¢A¢a‚¬A¡A‚A¬Aƒa€sA‚A ${awayStarterName}` : ""}`}
+            homeTitle={`Tendencia ERA abridor HOME${homeStarterName ? ` AƒÆ’A†a€™Aƒa€sA‚A¢AƒÆ’A‚A¢AƒA¢A¢a€sA¬A…A¡Aƒa€sA‚A¬AƒÆ’A‚A¢AƒA¢A¢a‚¬A¡A‚A¬Aƒa€sA‚A ${homeStarterName}` : ""}`}
             away={{ seasonEra: awayStarterERA, seasonIPOuts: awayStarterIPOuts, teamEra: eraAway, series: awayStarterLog }}
             home={{ seasonEra: homeStarterERA, seasonIPOuts: homeStarterIPOuts, teamEra: eraHome, series: homeStarterLog }}
           />
@@ -1443,8 +1443,8 @@ export default function Game() {
         </h3>
         {buff.latest && (
           <div className="muted" style={{ fontSize: ".9em" }}>
-            Nivel (Holt): {buff.latest.level.toFixed(2)} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Tendencia:{" "}
-            {buff.latest.trend.toFixed(2)} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Buff: {buff.latest.buff.toFixed(3)}
+            Nivel (Holt): {buff.latest.level.toFixed(2)} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A· Tendencia:{" "}
+            {buff.latest.trend.toFixed(2)} AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A· Buff: {buff.latest.buff.toFixed(3)}
           </div>
         )}
       </div>
@@ -1488,7 +1488,7 @@ function narratePlay(
   after: GameState
 ): string {
   // Inning/mitad antes de la jugada
-  const inningTxt = `${before.inning}ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª ${
+  const inningTxt = `${before.inning}AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚Aª ${
     before.half === "top" ? "Alta" : "Baja"
   }`;
   const team = before.half === "top" ? "Away" : "Home";
@@ -1504,14 +1504,14 @@ function narratePlay(
   }
   const outsTxt = `${outsShown} ${outsShown === 1 ? "out" : "outs"}`;
 
-  // Bases despuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s de la jugada
+  // Bases despuAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A©s de la jugada
   const b = after.bases;
   const basesTxt =
     b.first || b.second || b.third
       ? [b.first && "1B", b.second && "2B", b.third && "3B"]
           .filter(Boolean)
           .join(", ")
-      : "bases vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­as";
+      : "bases vacAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A­as";
 
   // Marcador
   const scoreTxt = `Home ${after.scoreHome}  -  Away ${after.scoreAway}`;
@@ -1519,21 +1519,21 @@ function narratePlay(
   // Texto base
   let line = `${inningTxt}: ${team} al bate. ${evDesc}. ${outsTxt}, ${basesTxt}, marcador ${scoreTxt}.`;
 
-  // AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â±adir nota de cambio de mitad
+  // AAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A±adir nota de cambio de mitad
   if (halfChanged) {
-    const nextInningTxt = `${after.inning}ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âª ${
+    const nextInningTxt = `${after.inning}AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚Aª ${
       after.half === "top" ? "Alta" : "Baja"
     }`;
     line += ` Cambio de mitad: ${nextInningTxt}.`;
   }
 
-  // DetecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de walk-off (Home gana en baja)
+  // DetecciAƒÆ’A†a€™Aƒa€ A¢a‚¬a„¢AƒÆ’A¢a‚¬A¡Aƒa€sA‚A³n de walk-off (Home gana en baja)
   if (
     after.status.over &&
     after.status.winner === "home" &&
     before.half === "bottom"
   ) {
-    line += " ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡Walk-off! Se acaba el juego.";
+    line += " AƒÆ’A†a€™AƒA¢A¢a€sA¬A…A¡AƒÆ’A¢a‚¬A¡Aƒa€sA‚A¡Walk-off! Se acaba el juego.";
   }
 
   return line;
@@ -1624,5 +1624,6 @@ function narratePlay(
     </div>
   );
 } */
+
 
 

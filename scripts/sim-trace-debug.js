@@ -1,4 +1,4 @@
-// Play-by-play simulation for 3 innings printing engine internals (FP, H_raw, etc.)
+﻿// Play-by-play simulation for 3 innings printing engine internals (FP, H_raw, etc.)
 // Mirrors logic from src/engine/baseball.ts without imports. Deterministic via seeded PRNG.
 
 // ---------- PRNG (deterministic) ----------
@@ -380,7 +380,7 @@ function simulateWithTrace(home, away, rules = DEFAULT_RULES, seed = 12345) {
     const before = `Inning ${gs.inning} ${gs.half === "top" ? "alta" : "baja"} | Outs ${gs.outs} | Bases ${formatBases(gs.bases)}`;
     const desc = applyEvent(gs, ev);
     const after = `Marcador A:${gs.scoreAway} - H:${gs.scoreHome}`;
-    log.push(`${before} → ${desc}. ${after}`);
+    log.push(`${before} a†’ ${desc}. ${after}`);
     if (gs.status.over) break;
     if (gs.inning > rules.regulationInnings + 1) break; // safety
   }
@@ -401,4 +401,5 @@ const away = {
 const { log, gs } = simulateWithTrace(home, away, DEFAULT_RULES, 20250908);
 for (const line of log) console.log(line);
 console.log(`\nFinal: Away ${gs.scoreAway} - Home ${gs.scoreHome} | Winner: ${gs.status.winner ?? "pending"}${gs.status.reason ? " (" + gs.status.reason + ")" : ""}`);
+
 

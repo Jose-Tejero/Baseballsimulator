@@ -1,4 +1,4 @@
-import { computeEraBuff, type GameERIP } from "../../engine/eraBuff";
+﻿import { computeEraBuff, type GameERIP } from "../../engine/eraBuff";
 import { MiniLineChart } from "./MiniLineChart";
 
 export function EraTrendCard({
@@ -54,9 +54,10 @@ export function EraTrendCard({
         <div className="muted">Sin datos del abridor.</div>
       )}
       <div className="muted" style={{ marginTop: 6, fontSize: ".9em" }}>
-        Referencia del equipo (ERA): {Number.isFinite(teamEra) ? teamEra.toFixed(2) : "�?"}
+        Referencia del equipo (ERA): {Number.isFinite(teamEra) ? teamEra.toFixed(2) : "i¿½?"}
       </div>
     </div>
   );
 }
+
 

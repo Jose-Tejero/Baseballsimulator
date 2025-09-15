@@ -1,4 +1,4 @@
-import { Toggle } from "./ui/Toggle";
+﻿import { Toggle } from "./ui/Toggle";
 import type { Hand, Roster } from "../engine/baseball";
 
 export function LineupPanel({
@@ -122,14 +122,14 @@ export function LineupPanel({
                 disabled={!awayTeamId || loadingLineupAway}
                 onClick={() => loadRealLineup("away")}
               >
-                {loadingLineupAway ? "Cargando lineup AWAY?�" : "Cargar lineup real (AWAY)"}
+                {loadingLineupAway ? "Cargando lineup AWAY?i¿½" : "Cargar lineup real (AWAY)"}
               </button>
               <button
                 className="button secondary"
                 disabled={!homeTeamId || loadingLineupHome}
                 onClick={() => loadRealLineup("home")}
               >
-                {loadingLineupHome ? "Cargando lineup HOME?�" : "Cargar lineup real (HOME)"}
+                {loadingLineupHome ? "Cargando lineup HOME?i¿½" : "Cargar lineup real (HOME)"}
               </button>
             </div>
             {awayLineupInfo && (
@@ -150,4 +150,5 @@ export function LineupPanel({
     </>
   );
 }
+
 
