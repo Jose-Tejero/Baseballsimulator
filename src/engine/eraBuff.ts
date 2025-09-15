@@ -3,10 +3,10 @@
  *
  * Dado un historial por juego de ER e IP de un lanzador, calcula:
  *  - ERA acumulado por juego
- *  - Suavizado de 2Aº orden (Holt: nivel + tendencia) sobreamortiguado
- *  - buff dinA¡mico: Bmax * tanh(a*(leagueERA - nivel) - b * tendencia)
+ *  - Suavizado de 2A orden (Holt: nivel + tendencia) sobreamortiguado
+ *  - buff dinAmico: Bmax * tanh(a*(leagueERA - nivel) - b * tendencia)
  * y lo mapea a un factor para ajustar las probabilidades ofensivas rivales
- * sin penalizar por pocos innings mediante una compuerta en funciA³n del IP acumulado.
+ * sin penalizar por pocos innings mediante una compuerta en funciAn del IP acumulado.
  */
 
 import type { TeamPitch } from "./baseball";
@@ -23,9 +23,9 @@ export type GameERIP = {
 export type EraBuffParams = {
   /** ERA de la liga (p.ej. 4.30 MLB). Default: 4.3 */
   leagueERA?: number;
-  /** MA¡ximo absoluto del buff en valor |buff| <= Bmax. Default: 0.18 */
+  /** MAximo absoluto del buff en valor |buff| <= Bmax. Default: 0.18 */
   Bmax?: number;
-  /** Sensibilidad a la desviaciA³n de nivel respecto a la liga. Default: 0.7 */
+  /** Sensibilidad a la desviaciAn de nivel respecto a la liga. Default: 0.7 */
   a?: number;
   /** Sensibilidad a la tendencia (negativa = mejorando). Default: 1.8 */
   b?: number;
@@ -33,7 +33,7 @@ export type EraBuffParams = {
   alpha?: number;
   /** Suavizado tendencia (Holt). 0<beta<=1. Default: 0.06 */
   beta?: number;
-  /** Escala de saturaciA³n de IP para no penalizar muestras pequeA±as (en innings). Default: 20 */
+  /** Escala de saturaciAn de IP para no penalizar muestras pequeAas (en innings). Default: 20 */
   ipSaturation?: number;
 };
 
@@ -66,14 +66,14 @@ function clamp(x: number, a: number, b: number): number {
 }
 
 /**
- * Convierte IP (como 6.1 A³ 6.2) a outs. Si se detecta un decimal distinto de .1 o .2,
+ * Convierte IP (como 6.1 A 6.2) a outs. Si se detecta un decimal distinto de .1 o .2,
  * se aproxima a tercios: round((frac)*3).
  */
 export function ipToOuts(ip: number): number {
   if (!Number.isFinite(ip) || ip <= 0) return 0;
   const w = Math.trunc(ip);
   const frac = Math.abs(ip - w);
-  // InterpretaciA³n MLB: .1 = 1/3, .2 = 2/3
+  // InterpretaciAn MLB: .1 = 1/3, .2 = 2/3
   let decOuts = 0;
   const tenths = Math.round(frac * 10);
   if (tenths === 1) decOuts = 1;
@@ -87,7 +87,7 @@ export function ipToOuts(ip: number): number {
 }
 
 /**
- * Compuerta por IP acumulado para no penalizar muestras pequeA±as.
+ * Compuerta por IP acumulado para no penalizar muestras pequeAas.
  * g(IP) = 1 - exp(-IP / ipSaturation)
  */
 export function ipGate(ip: number, ipSaturation: number): number {
@@ -102,12 +102,12 @@ export function ipGate(ip: number, ipSaturation: number): number {
  */
 export function buffToRunsPF(buff: number): number {
   const pf = 1 - buff;
-  // lA­mites de seguridad
+  // lAmites de seguridad
   return clamp(pf, 0.6, 1.4);
 }
 
 /**
- * Devuelve una versiA³n del pitcheo con ERA ajustado por buff (equivalente a runsPF).
+ * Devuelve una versiAn del pitcheo con ERA ajustado por buff (equivalente a runsPF).
  * ERA_eff = ERA * (1 - buff).
  */
 export function withBuffedPitch(p: TeamPitch, buff: number): TeamPitch {
@@ -154,14 +154,14 @@ export function computeEraBuff(
     const cumIP = cumOuts / 3;
     const eraCum = cumIP > 0 ? (9 * cumER) / cumIP : null;
 
-    // ObservaciA³n para Holt: si no hay IP aAºn, usa el previo / liga
+    // ObservaciAn para Holt: si no hay IP aAn, usa el previo / liga
     const y = eraCum != null && Number.isFinite(eraCum) ? eraCum : (prevObs ?? P.leagueERA);
 
     // Holt's linear method (nivel + tendencia)
     const L = P.alpha * y + (1 - P.alpha) * (L_prev + T_prev);
     const T = P.beta * (L - L_prev) + (1 - P.beta) * T_prev;
 
-    // Buff bruto por desviaciA³n respecto a liga y tendencia
+    // Buff bruto por desviaciAn respecto a liga y tendencia
     const s = P.a * (P.leagueERA - L) - P.b * T;
     const buffRaw = P.Bmax * Math.tanh(s);
 
@@ -201,7 +201,7 @@ export function computeEraBuff(
 }
 
 /**
- * Atajo: devuelve el buff y runsPF vigentes con historial dado (o neutro si vacA­o).
+ * Atajo: devuelve el buff y runsPF vigentes con historial dado (o neutro si vacAo).
  */
 export function currentBuff(
   games: GameERIP[],
@@ -213,5 +213,6 @@ export function currentBuff(
   const { buff, runsPF, level, trend } = r.latest;
   return { buff, runsPF, level, trend };
 }
+
 
 

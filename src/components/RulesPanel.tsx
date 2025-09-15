@@ -24,7 +24,7 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
       <Toggle label="Entradas extra" checked={rules.enableExtraInnings} onChange={(v) => { setRules({ ...rules, enableExtraInnings: v }); syncRules(); }} />
 
       <Toggle
-        label="Base running estocA¡stico"
+        label="Base running estocAstico"
         checked={(rules as any).stochasticBaseRunning ?? true}
         onChange={(v) => {
           setRules({ ...(rules as any), stochasticBaseRunning: v } as Rules);
@@ -34,11 +34,11 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
 
       <Toggle label="Permitir empates" checked={rules.allowTies} onChange={(v) => { setRules({ ...rules, allowTies: v }); syncRules(); }} />
 
-      <Field label={`LA­mite de entradas extra: ${rules.maxInnings ?? "-"}`}>
+      <Field label={`LAmite de entradas extra: ${rules.maxInnings ?? "-"}`}>
         <input
           type="number"
           min={rules.regulationInnings}
-          placeholder="vacA­o = sin lA­mite"
+          placeholder="vacAo = sin lAmite"
           value={rules.maxInnings ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? null : Math.max(+e.target.value, rules.regulationInnings);
@@ -54,7 +54,7 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
         <input
           type="number"
           min={1}
-          placeholder="vacA­o = off"
+          placeholder="vacAo = off"
           value={rules.mercyDiff ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? undefined : Math.max(1, +e.target.value);
@@ -68,7 +68,7 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
         <input
           type="number"
           min={1}
-          placeholder="vacA­o = off"
+          placeholder="vacAo = off"
           value={rules.mercyInning ?? ""}
           onChange={(e) => {
             const v = e.target.value === "" ? undefined : Math.max(1, +e.target.value);
@@ -80,4 +80,5 @@ export function RulesPanel({ rules, setRules, syncRules }: { rules: Rules; setRu
     </div>
   );
 }
+
 

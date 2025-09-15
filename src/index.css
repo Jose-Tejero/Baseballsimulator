@@ -6,11 +6,11 @@
   --text: #e8ebf7;
   --muted: #9aa3b2;
 
-  /* acentos (bA©isbol vibes) */
+  /* acentos (bAisbol vibes) */
   --accent: #e63946;  /* rojo */
   --accent-2: #1d9bf0;/* azul */
 
-  /* tipografA­a & ritmo */
+  /* tipografAa & ritmo */
   --font-sans: ui-sans-serif, system-ui, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
   --fs-hero: clamp(1.6rem, 1.2rem + 2vw, 2.4rem);
   --fs-h1: 1.75rem;
@@ -27,7 +27,7 @@
   --shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
-/* Dark / Light automA¡tico */
+/* Dark / Light automAtico */
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f7f8fb;
@@ -88,7 +88,7 @@ body {
   box-shadow: var(--shadow);
   padding: var(--space-6);
   max-width: 100%;
-  overflow: hidden;            /* cualquier hijo locochA³n se recorta */
+  overflow: hidden;            /* cualquier hijo locochAn se recorta */
 }
 .card input[type="range"],
 .card input[type="number"],
@@ -99,7 +99,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Mejora estA©tica mA­nima del number */
+/* Mejora estAtica mAnima del number */
 .card input[type="number"] {
   padding: 8px 10px;
   border-radius: 10px;
@@ -108,7 +108,7 @@ body {
   color: var(--text);
 }
 
-/* TipografA­a utilitaria */
+/* TipografAa utilitaria */
 .h-hero { font-size: var(--fs-hero); line-height: 1.1; letter-spacing: -0.02em; }
 .h1 { font-size: var(--fs-h1); margin: 0 0 var(--space-3); }
 .h2 { font-size: var(--fs-h2); margin: 0 0 var(--space-2); color: var(--muted); }
@@ -132,7 +132,7 @@ body {
   }
 }
 
-/* -------------- Scoreboard especA­fico -------------- */
+/* -------------- Scoreboard especAfico -------------- */
 .scoreboard {
   display: grid;
   gap: var(--space-4);
@@ -156,10 +156,10 @@ body {
 /* Por si el gradiente de fondo generaba scroll horizontal en ciertos zooms */
 body { overflow-x: hidden; }
 
-/* Bases (diamante) a€” FIX anti-superposiciA³n */
+/* Bases (diamante) a FIX anti-superposiciAn */
 .bases {
-  --s: 18px;   /* tamaA±o del rombo/base */
-  --c: 44px;   /* tamaA±o de cada celda del grid (debe ser > --s) */
+  --s: 18px;   /* tamaAo del rombo/base */
+  --c: 44px;   /* tamaAo de cada celda del grid (debe ser > --s) */
   display: grid;
   grid-template-columns: repeat(3, var(--c));
   grid-template-rows: repeat(3, var(--c));
@@ -186,13 +186,13 @@ body { overflow-x: hidden; }
 .base.active {
   background: var(--accent-2);
   border-color: transparent;
-  /* halo que ya no invadirA¡ otras celdas */
+  /* halo que ya no invadirA otras celdas */
   box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent-2) 25%, transparent);
   transform: scale(1.12);
 }
 
-/* Posiciones en la rejilla 3A—3: 
-   fila,col: seconda†‘, thirda†, firsta†’, homea†“ */
+/* Posiciones en la rejilla 3A3: 
+   fila,col: seconda, thirda, firsta, homea */
 .second { grid-column: 2; grid-row: 1; }
 .third  { grid-column: 1; grid-row: 2; }
 .first  { grid-column: 3; grid-row: 2; }
@@ -216,7 +216,7 @@ body { overflow-x: hidden; }
   min-width: 0;                                /* clave para cortar overflow */
 }
 
-/* AnimaciA³n sutil al anotar */
+/* AnimaciAn sutil al anotar */
 @keyframes pop {
   from { transform: scale(0.9); opacity: .6; }
   to   { transform: scale(1);   opacity: 1; }
@@ -241,4 +241,5 @@ body { overflow-x: hidden; }
     grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
   }
 }
+
 

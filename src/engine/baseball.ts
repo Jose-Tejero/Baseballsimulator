@@ -1,14 +1,14 @@
-﻿// Tipos y motor (Nivel 2: AVGA·OBPA·SLGA·ERA)
+﻿// Tipos y motor (Nivel 2: AVGAOBPASLGAERA)
 
 export type Bases = { first: boolean; second: boolean; third: boolean };
 export type Half = "top" | "bottom";
 export type EventType = "OUT" | "BB" | "HBP" | "1B" | "2B" | "3B" | "HR";
 export type OutType = "K" | "GB" | "FB" | "LD";
 type GameEndReason =
-  | "regulation" // terminA³ en 9 entradas con ganador / regla general
+  | "regulation" // terminA en 9 entradas con ganador / regla general
   | "walkoff" // home toma la ventaja definitiva en la baja
   | "mercy" // regla de nocaut
-  | "maxInnings" // alcanzA³ tope de entradas
+  | "maxInnings" // alcanzA tope de entradas
   | "tieAllowed" // reglas permiten empate
   | "forfeit";
 
@@ -17,13 +17,13 @@ export type GameStatus =
   | { over: true; winner: "home" | "away" | "tie"; reason?: GameEndReason };
 
 export type Rules = {
-  regulationInnings: number; // Entradas a€œreglamentariasa€ (normalmente 9; en ligas menores/softball puede ser 7)
-  allowTies: boolean; // A¿Se permite terminar empatado?
-  enableExtraInnings: boolean; // A¿Se habilitan entradas extra si hay empate tras las reglamentarias?
+  regulationInnings: number; // Entradas areglamentariasa (normalmente 9; en ligas menores/softball puede ser 7)
+  allowTies: boolean; // ASe permite terminar empatado?
+  enableExtraInnings: boolean; // ASe habilitan entradas extra si hay empate tras las reglamentarias?
   maxInnings: number | null; // Tope duro de entradas (p.ej. 12). Null = sin tope.
-  walkoff: boolean; // A¿Se permite a€œwalk-offa€ en la baja cuando el home toma ventaja definitiva?
-  mercyDiff?: number; // Diferencia para a€œmercy rulea€ (nocaut), p.ej. 10
-  mercyInning?: number; // A partir de quA© entrada aplica la mercy, p.ej. 7
+  walkoff: boolean; // ASe permite awalk-offa en la baja cuando el home toma ventaja definitiva?
+  mercyDiff?: number; // Diferencia para amercy rulea (nocaut), p.ej. 10
+  mercyInning?: number; // A partir de quA entrada aplica la mercy, p.ej. 7
 };
 
 export const DEFAULT_RULES: Rules = {
@@ -61,8 +61,8 @@ export const initialState: GameState = {
 const R9_REF = 4.3;
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
-/** Normaliza reglas para evitar configuraciA³n sin salida:
- *  - Si NO hay extras y NO se permiten empates a†’ habilita extras.
+/** Normaliza reglas para evitar configuraciAn sin salida:
+ *  - Si NO hay extras y NO se permiten empates a habilita extras.
  */
 function normalizeRules(r: Rules): Rules {
   if (!r.enableExtraInnings && !r.allowTies) {
@@ -88,7 +88,7 @@ function scoreRun(gs: GameState, by: number) {
   else gs.scoreHome += by;
 }
 
-// --- Helpers estocA¡sticos (Paso 1 realismo) ---
+// --- Helpers estocAsticos (Paso 1 realismo) ---
 function rnd() {
   return Math.random();
 }
@@ -99,7 +99,7 @@ function bernoulli(p: number): boolean {
 
 // ----------------- Desagregado de OUTs (K/GB/FB/LD) -----------------
 // Mezcla base simple para tipos de out (condicionada a que el evento sea OUT)
-// NA³tese que esto es un modelo heurA­stico y calibrable.
+// NAtese que esto es un modelo heurAstico y calibrable.
 const OUT_TYPE_WEIGHTS: Record<OutType, number> = {
   K: 0.28,
   GB: 0.44,
@@ -119,23 +119,23 @@ function rollOutType(): OutType {
 }
 
 function dpProbByOuts(outs: number) {
-  // Prob. de DP sA³lo aplicable a GB con 1B ocupado y <2 outs
+  // Prob. de DP sAlo aplicable a GB con 1B ocupado y <2 outs
   return outs === 0 ? 0.12 : outs === 1 ? 0.14 : 0;
 }
 
 function sfProbByOuts(outs: number) {
-  // Prob. de SF sA³lo aplicable a FB con 3B ocupado y <2 outs
+  // Prob. de SF sAlo aplicable a FB con 3B ocupado y <2 outs
   return outs === 0 ? 0.04 : outs === 1 ? 0.08 : 0;
 }
 
-/** Avance estocA¡stico segAºn estado base/outs y tipo de hit. */
+/** Avance estocAstico segAn estado base/outs y tipo de hit. */
 function advanceRunnersStochastic(gs: GameState, basesToAdvance: number) {
   const outs = gs.outs;
   const b0 = { ...gs.bases };
   let runs = 0;
   const nb: Bases = { first: false, second: false, third: false };
 
-  // Tablas heurA­sticas (aprox MLB) dependientes de outs
+  // Tablas heurAsticas (aprox MLB) dependientes de outs
   const P = {
     single: {
       scoreFrom3B: [0.92, 0.95, 0.98][outs] ?? 0.95,
@@ -173,9 +173,9 @@ function advanceRunnersStochastic(gs: GameState, basesToAdvance: number) {
       else if (bernoulli(P.single.from1B_to3B)) nb.third = true;
       else nb.second = true;
     }
-    // Bateador a 1B (si bases estaban llenas y nadie anotA³ de 3B, puede empujar carrera)
+    // Bateador a 1B (si bases estaban llenas y nadie anotA de 3B, puede empujar carrera)
     if (b0.first && b0.second && b0.third && !nb.third) {
-      // bases llenas & sencillo con retenciA³n: empuja 1
+      // bases llenas & sencillo con retenciAn: empuja 1
       runs++;
       nb.third = true; // 2B->3B
       nb.second = true; // 1B->2B
@@ -200,7 +200,7 @@ function advanceRunnersStochastic(gs: GameState, basesToAdvance: number) {
     if (b0.first) runs++;
     nb.third = true;
   } else if (basesToAdvance >= 4) {
-    // HR (aquA­ no deberA­a entrar; HR se maneja aparte)
+    // HR (aquA no deberAa entrar; HR se maneja aparte)
     runs += (b0.first ? 1 : 0) + (b0.second ? 1 : 0) + (b0.third ? 1 : 0) + 1;
   }
 
@@ -274,7 +274,7 @@ function advanceRunnersDeterministic(gs: GameState, basesToAdvance: number) {
   checkMercy(gs);
 }
 
-/** Enrutador: elige estocstico o determinista segn reglas */
+/** Enrutador: elige estocstico o determinista segn reglas */
 function advanceRunners(gs: GameState, basesToAdvance: number) {
   const useStoch = ((gs.rules as any)?.stochasticBaseRunning ?? true) !== false;
   if (useStoch) return advanceRunnersStochastic(gs, basesToAdvance);
@@ -293,12 +293,12 @@ function registerOut(gs: GameState) {
 }
 
 function reachFromWHIP(whip: number) {
-  // WHIP tA­pico MLB ~0.8a€“1.6 a†’ reach ~0.21a€“0.35
+  // WHIP tApico MLB ~0.8a1.6 a reach ~0.21a0.35
   const r = whip / (3 + whip);
-  return clamp(r, 0.12, 0.48); // lA­mites de seguridad
+  return clamp(r, 0.12, 0.48); // lAmites de seguridad
 }
 
-// Peso del a€œlado bateadora€ vs a€œlado pitchera€
+// Peso del alado bateadora vs alado pitchera
 const REACH_OFF_WEIGHT = 0.4; // 40% bateador
 const REACH_DEF_WEIGHT = 0.6; // 60% pitcher (WHIP)
 
@@ -332,7 +332,7 @@ function checkWalkoff(gs: GameState) {
 function checkEndOfHalf(gs: GameState) {
   const r = rulesOf(gs);
 
-  // Estamos en 'bottom' a†’ terminA³ la ALTA del inning actual (gs.inning).
+  // Estamos en 'bottom' a terminA la ALTA del inning actual (gs.inning).
   if (gs.half === "bottom") {
     const afterRegTop = gs.inning >= r.regulationInnings;
     if (afterRegTop && gs.scoreHome > gs.scoreAway) {
@@ -345,7 +345,7 @@ function checkEndOfHalf(gs: GameState) {
     return;
   }
 
-  // Estamos en 'top' a†’ terminA³ la BAJA del inning anterior (gs.inning - 1).
+  // Estamos en 'top' a terminA la BAJA del inning anterior (gs.inning - 1).
   const completedInning = gs.inning - 1;
   const afterRegComplete = completedInning >= r.regulationInnings;
 
@@ -359,13 +359,13 @@ function checkEndOfHalf(gs: GameState) {
       };
       return;
     }
-    // Empate despuA©s de 9 completas:
+    // Empate despuAs de 9 completas:
     if (!r.enableExtraInnings) {
-      // Con normalizaciA³n, si no hay extras entonces allowTies es true.
+      // Con normalizaciAn, si no hay extras entonces allowTies es true.
       gs.status = { over: true, winner: "tie", reason: "tieAllowed" };
       return;
     }
-    // Revisar lA­mite de entradas extra, si lo hay:
+    // Revisar lAmite de entradas extra, si lo hay:
     if (r.maxInnings && completedInning >= r.maxInnings) {
       gs.status = { over: true, winner: "tie", reason: "maxInnings" };
     }
@@ -377,9 +377,9 @@ function forceAdvanceOneBase(gs: GameState) {
   const b = gs.bases;
 
   if (b.first && b.second && b.third) {
-    // Bases llenas a†’ entra 1
+    // Bases llenas a entra 1
     scoreRun(gs, 1);
-    // Desplaza (se mantienen llenas: el anotador sale, los demA¡s avanzan uno)
+    // Desplaza (se mantienen llenas: el anotador sale, los demAs avanzan uno)
     b.third = true;
     b.second = true;
     b.first = true;
@@ -403,7 +403,7 @@ function forceAdvanceOneBase(gs: GameState) {
 export function applyEvent(gs: GameState, ev: EventType): string {
   switch (ev) {
     case "OUT":
-      // OUT estocA¡stico: posible SF o DP simplificado
+      // OUT estocAstico: posible SF o DP simplificado
       {
         const b = gs.bases;
         const outs = gs.outs;
@@ -428,7 +428,7 @@ export function applyEvent(gs: GameState, ev: EventType): string {
           // bateador eliminado en 1B
           registerOut(gs);
           registerOut(gs);
-          return "Rodado (GB) a€” Doble play";
+          return "Rodado (GB) a Doble play";
         }
         }
         // Out normal
@@ -440,7 +440,7 @@ export function applyEvent(gs: GameState, ev: EventType): string {
           ? "Rodado (GB)"
           : ot === "FB"
           ? "Elevado (FB)"
-          : "LA­nea (LD)";
+          : "LAnea (LD)";
       }
     case "1B":
       advanceRunners(gs, 1);
@@ -477,7 +477,7 @@ export function applyEvent(gs: GameState, ev: EventType): string {
   }
 }
 
-// ---------- Motor (AVGA·OBPA·SLG vs ERA) ----------
+// ---------- Motor (AVGAOBPASLG vs ERA) ----------
 export type TeamBatSlash = { AVG: number; OBP: number; SLG: number };
 export type TeamPitch = { ERA: number; WHIP?: number };
 export type EventProbs = {
@@ -499,7 +499,7 @@ export type ParkOpts = {
   homeAdvOnly?: boolean;
 };
 
-// Mezcla base MLB por hit (si SLG/H no calza, reajustamos desde aquA­)
+// Mezcla base MLB por hit (si SLG/H no calza, reajustamos desde aquA)
 const BASE_MIX = { s1B: 0.65, s2B: 0.2, s3B: 0.02, sHR: 0.13 };
 
 function normalize4(a: number, b: number, c: number, d: number) {
@@ -507,7 +507,7 @@ function normalize4(a: number, b: number, c: number, d: number) {
   return s > 0 ? [a / s, b / s, c / s, d / s] : [0.65, 0.2, 0.02, 0.13];
 }
 
-/** Ajusta la mezcla para que el promedio de bases por hit sea ~ targetB (a‰¥1 y a‰¤~2.6). */
+/** Ajusta la mezcla para que el promedio de bases por hit sea ~ targetB (a1 y a~2.6). */
 function mixFromSlugPerHit(targetB: number) {
   let w1 = BASE_MIX.s1B,
     w2 = BASE_MIX.s2B,
@@ -565,7 +565,7 @@ function computeEventProbsFromSlash(
   const SLG = clamp(batter.SLG, 0.3, 0.7);
   const ERA = clamp(oppPitch.ERA, 1.0, 10.0);
 
-  // --- Lado bateador (como ya tenA­as) ---
+  // --- Lado bateador (como ya tenAas) ---
   let FP = ERA / R9_REF;
   if (adjust?.runsPF != null && isFinite(adjust.runsPF)) {
     const pf = Math.max(0.5, Math.min(1.5, adjust.runsPF));
@@ -573,7 +573,7 @@ function computeEventProbsFromSlash(
   }
   const H_raw = clamp(AVG * FP, 0.08, 0.45);
   const OBP_eff = clamp(OBP * (0.85 + 0.3 * (FP - 1)), 0.18, 0.52);
-  const BB_raw = Math.max(0, OBP_eff - H_raw); // "BB" implA­cito (no emitimos evento)
+  const BB_raw = Math.max(0, OBP_eff - H_raw); // "BB" implAcito (no emitimos evento)
   const reach_off = H_raw + BB_raw;
 
   // --- Lado pitcher desde WHIP (nuevo) ---
@@ -673,7 +673,7 @@ export function rollEventFromProbs(probs: EventProbs): EventType {
 // Mano de bateo/pitcheo
 export type Hand = "L" | "R" | "S"; // S = ambidiestro (switch)
 
-// Rates por apariciA³n al plato (por-PA)
+// Rates por apariciAn al plato (por-PA)
 export type RateLine = {
   bb: number; // BB%
   k: number; // K%
@@ -686,7 +686,7 @@ export type RateLine = {
 
 export type BatterRates = { vsL: RateLine; vsR: RateLine };
 export type Batter = {
-  id: string; // identificador Aºnico en el roster
+  id: string; // identificador Anico en el roster
   name: string;
   hand: Hand; // mano natural del bateador (informativa)
   rates: BatterRates;
@@ -700,7 +700,7 @@ export type Roster = {
 
 /**
  * Convierte una RateLine por-PA en EventProbs del motor.
- * Nota: K% se integra dentro de OUT global (aAºn no distinguimos tipos de OUT aquA­).
+ * Nota: K% se integra dentro de OUT global (aAn no distinguimos tipos de OUT aquA).
  */
 export function eventProbsFromRateLine(rate: RateLine): EventProbs {
   // Robustez ante valores negativos/ruido
@@ -711,7 +711,7 @@ export function eventProbsFromRateLine(rate: RateLine): EventProbs {
   const d2 = Math.max(0, rate.double || 0);
   const d3 = Math.max(0, rate.triple || 0);
   const h = Math.max(0, rate.h || 0);
-  const s1_raw = Math.max(0, h - hr - d2 - d3); // 1B implA­citos
+  const s1_raw = Math.max(0, h - hr - d2 - d3); // 1B implAcitos
 
   let sumKnown = bb + k + hbp + hr + d2 + d3 + s1_raw;
   let bb2 = bb,
@@ -735,9 +735,9 @@ export function eventProbsFromRateLine(rate: RateLine): EventProbs {
   }
   const pOUT = Math.max(0, 1 - (bb2 + hbp2 + hr2 + d22 + d32 + s12 + k2));
 
-  // Mapear a EventProbs (sin K explA­cito; OUT los incluye)
+  // Mapear a EventProbs (sin K explAcito; OUT los incluye)
   return {
-    OUT: pOUT + k2, // K% tambiA©n termina en OUT del motor
+    OUT: pOUT + k2, // K% tambiAn termina en OUT del motor
     BB: bb2,
     HBP: hbp2,
     "1B": s12,
@@ -747,12 +747,12 @@ export function eventProbsFromRateLine(rate: RateLine): EventProbs {
   };
 }
 
-/** Devuelve la RateLine adecuada para el bateador segAºn mano del pitcher. */
+/** Devuelve la RateLine adecuada para el bateador segAn mano del pitcher. */
 export function pickRateLine(b: Batter, pitcherHand: Hand): RateLine {
   return pitcherHand === "L" ? b.rates.vsL : b.rates.vsR;
 }
 
-/** Devuelve el id del bateador actual dado el lineup y un A­ndice. */
+/** Devuelve el id del bateador actual dado el lineup y un Andice. */
 export function currentBatterId(
   roster: Roster,
   pitcherHand: Hand,
@@ -790,7 +790,7 @@ export function adjustEventProbsWithPF(
     if (total2 > 1e-12) {
       const scale = hitSum / total2;
       HR = HR2 * scale;
-      // mantener proporciones de S1,S2,S3 entre sA­
+      // mantener proporciones de S1,S2,S3 entre sA
       const w1 = S1 / Math.max(1e-12, oth);
       const w2 = S2 / Math.max(1e-12, oth);
       const w3 = S3 / Math.max(1e-12, oth);
@@ -801,12 +801,12 @@ export function adjustEventProbsWithPF(
     }
   }
 
-  // 3) Recalcular OUT para mantener suma a‰ˆ1
+  // 3) Recalcular OUT para mantener suma a1
   const OUT = clamp(1 - (BB + HBP + S1 + S2 + S3 + HR), 0, 1);
   return { OUT, BB, HBP, "1B": S1, "2B": S2, "3B": S3, HR };
 }
 
-// -------- SimulaciA³n por lineup (para juegos y Monte Carlo) --------
+// -------- SimulaciAn por lineup (para juegos y Monte Carlo) --------
 export type LineupHands = { homePitcher: Hand; awayPitcher: Hand };
 export type LineupAdjust = { runsPF?: number; hrPF?: number };
 
@@ -995,4 +995,5 @@ export function monteCarlo(
     avgAwayRuns: sumA / runs,
   };
 }
+
 
