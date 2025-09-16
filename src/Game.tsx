@@ -34,8 +34,6 @@ import {
   type GameERIP,
 } from "./engine/eraBuff";
 import {
-  getTeamSummary,
-  getTeamRoster,
   getPlayerPitchingStats,
   getPlayerPitchingGameLog,
   type Team,
@@ -441,81 +439,17 @@ export default function Game() {
   // Cargar listado de equipos para la temporada (integrado arriba con hook)
 
   const loadTeamStats = useCallback(
-    async (
-      which: "home" | "away",
-      teamId: number,
-      forSeason: number = season
-    ) => {
-      if (which === "home") {
-        setLoadingHome(true);
-        setErrHome(null);
-      } else {
-        setLoadingAway(true);
-        setErrAway(null);
-      }
-      try {
-        const { hitting, pitching } = await getTeamSummary(
-          teamId,
-          forSeason,
-          "R"
-        );
-        if (which === "home") {
-          if (hitting.avg != null) setAvgHome(hitting.avg);
-          if (hitting.obp != null) setObpHome(hitting.obp);
-          if (hitting.slg != null) setSlgHome(hitting.slg);
-          if (pitching.era != null) setEraHome(pitching.era);
-          if (pitching.whip != null) setWhipHome(pitching.whip);
-        } else {
-          if (hitting.avg != null) setAvgAway(hitting.avg);
-          if (hitting.obp != null) setObpAway(hitting.obp);
-          if (hitting.slg != null) setSlgAway(hitting.slg);
-          if (pitching.era != null) setEraAway(pitching.era);
-          if (pitching.whip != null) setWhipAway(pitching.whip);
-        }
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Error al cargar stats";
-        if (which === "home") setErrHome(msg);
-        else setErrAway(msg);
-      } finally {
-        if (which === "home") setLoadingHome(false);
-        else setLoadingAway(false);
-      }
+    async (_which: "home" | "away", _teamId: number, _forSeason: number = season) => {
+      // Gestionado por hooks (useTeamSummary). No-op para compatibilidad con UI.
+      return;
     },
     [season]
   );
 
   const loadRoster = useCallback(
-    async (
-      which: "home" | "away",
-      teamId: number,
-      forSeason: number = season
-    ) => {
-      if (which === "home") {
-        setLoadingRosterHome(true);
-        setErrRosterHome(null);
-      } else {
-        setLoadingRosterAway(true);
-        setErrRosterAway(null);
-      }
-      try {
-        const roster = await getTeamRoster(teamId, forSeason);
-        const byName = [...roster].sort((a, b) =>
-          a.fullName.localeCompare(b.fullName)
-        );
-        const pitchers = byName.filter(
-          (p) => (p.positionCode ?? "").toUpperCase() === "P"
-        );
-        const finalList = pitchers.length > 0 ? pitchers : byName; // fallback a roster completo si no hay pitchers detectados
-        if (which === "home") setHomeRoster(finalList);
-        else setAwayRoster(finalList);
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Error al cargar roster";
-        if (which === "home") setErrRosterHome(msg);
-        else setErrRosterAway(msg);
-      } finally {
-        if (which === "home") setLoadingRosterHome(false);
-        else setLoadingRosterAway(false);
-      }
+    async (_which: "home" | "away", _teamId: number, _forSeason: number = season) => {
+      // Gestionado por hooks (useRoster). No-op para compatibilidad con UI.
+      return;
     },
     [season]
   );
