@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 // import { EraTrendCard } from "./components/ui/EraTrendCard";
 import { LogPanel } from "./components/LogPanel";
@@ -57,6 +57,8 @@ import {
   useTeamSummary,
   useRoster as useTeamRosterHook,
   useProbable as useProbableHook,
+  useNextGameLineup as useNextGameLineupHook,
+  useAnchoredLineups as useAnchoredLineupsHook,
 } from "./hooks/mlb";
 
 // (reasonLabel removido: no se usa en UI)
@@ -380,7 +382,7 @@ export default function Game() {
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el próximo juego
+  // Anclaje por gamePk si ambos equipos comparten el prÃ³ximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -393,6 +395,17 @@ export default function Game() {
   const [errLineupAway, setErrLineupAway] = useState<string | null>(null);
   const [homeLineupInfo, setHomeLineupInfo] = useState<string | null>(null);
   const [awayLineupInfo, setAwayLineupInfo] = useState<string | null>(null);
+
+  // Hooks de lineups (prÃ³ximo juego y anclado)
+  const homeNextLineupState = useNextGameLineupHook(
+    typeof homeTeamId === "number" ? homeTeamId : undefined,
+    season
+  );
+  const awayNextLineupState = useNextGameLineupHook(
+    typeof awayTeamId === "number" ? awayTeamId : undefined,
+    season
+  );
+  const anchoredState = useAnchoredLineupsHook(anchorGamePk, season);
 
   // Construir RateLine desde stats de bateo
   const toRateLineFromHitting = (s: PlayerHitting): RateLine => {
@@ -409,6 +422,33 @@ export default function Game() {
   };
 
   async function loadRealLineup(which: "home" | "away") {
+    // Hook-first: si ya tenemos lineup del prÃ³ximo juego, aplicarlo sin refetch
+    const st = which === "home" ? homeNextLineupState : awayNextLineupState;
+    if (st?.error) {
+      if (which === "home") setErrLineupHome(st.error);
+      else setErrLineupAway(st.error);
+      return;
+    }
+    if (st?.data) {
+      const infoTxt = ((st.predicted ? "PredicciÃ³n" : "") +
+        " vs prÃ³ximo juego " + new Date(st.data.gameDate).toLocaleString()).trim();
+      if (which === "home") {
+        setHomeBatRoster(st.data.roster);
+        setHomeLineupInfo(infoTxt);
+        setErrLineupHome(st.predicted
+          ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
+          : null);
+        setHomeGamePk(st.data.gamePk ?? null);
+      } else {
+        setAwayBatRoster(st.data.roster);
+        setAwayLineupInfo(infoTxt);
+        setErrLineupAway(st.predicted
+          ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
+          : null);
+        setAwayGamePk(st.data.gamePk ?? null);
+      }
+      return;
+    }
     const teamId = which === "home" ? homeTeamId : awayTeamId;
     if (!teamId || typeof teamId !== "number") {
       if (which === "home") setErrLineupHome("Selecciona equipo HOME");
@@ -423,7 +463,7 @@ export default function Game() {
         gameType: "R",
       });
       if (!info.lineup.length)
-        throw new Error("Lineup no disponible aún para el próximo juego");
+        throw new Error("Lineup no disponible aÃºn para el prÃ³ximo juego");
       // Para cada bateador, obtener splits vs L/R
       const seasonForStats = season;
       const playerEntries = await Promise.all(
@@ -472,20 +512,20 @@ export default function Game() {
       if (which === "home") {
         setHomeBatRoster(roster);
         setHomeLineupInfo(
-          `${info.side.toUpperCase()} vs próximo juego ${new Date(
+          `${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(
             info.gameDate
           ).toLocaleString()}`
         );
       } else {
         setAwayBatRoster(roster);
         setAwayLineupInfo(
-          `${info.side.toUpperCase()} vs próximo juego ${new Date(
+          `${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(
             info.gameDate
           ).toLocaleString()}`
         );
       }
     } catch (e: any) {
-      // Fallback: intentar predicción de lineup con juegos recientes
+      // Fallback: intentar predicciÃ³n de lineup con juegos recientes
       try {
         const pred = await predictNextGameLineup(teamId, {
           daysAhead: 10,
@@ -545,22 +585,22 @@ export default function Game() {
           if (which === "home") {
             setHomeBatRoster(roster);
             setHomeLineupInfo(
-              `Predicción vs próximo juego ${new Date(
+              `PredicciÃ³n vs prÃ³ximo juego ${new Date(
                 pred.gameDate
               ).toLocaleString()}`
             );
             setErrLineupHome(
-              "Lineup no disponible; usando predicción basada en juegos recientes."
+              "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
             );
           } else {
             setAwayBatRoster(roster);
             setAwayLineupInfo(
-              `Predicción vs próximo juego ${new Date(
+              `PredicciÃ³n vs prÃ³ximo juego ${new Date(
                 pred.gameDate
               ).toLocaleString()}`
             );
             setErrLineupAway(
-              "Lineup no disponible; usando predicción basada en juegos recientes."
+              "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
             );
           }
           return;
@@ -652,7 +692,7 @@ export default function Game() {
         return { players, lineupVsL: orderIds, lineupVsR: orderIds } as Roster;
       };
 
-      // Si no hay lineup oficial, intentar predicción por juegos recientes
+      // Si no hay lineup oficial, intentar predicciÃ³n por juegos recientes
       if (
         (!Array.isArray(lhome) || lhome.length === 0) &&
         typeof homeTid === "number"
@@ -687,13 +727,13 @@ export default function Game() {
         setHomeLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredHome) {
           setErrLineupHome(
-            "Lineup no disponible; usando predicción basada en juegos recientes."
+            "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
           );
-          setHomeLineupInfo(`Predicción anclada a gamePk ${gamePk}`);
+          setHomeLineupInfo(`PredicciÃ³n anclada a gamePk ${gamePk}`);
         }
       } else {
         setErrLineupHome(
-          "Lineup no disponible aún para el próximo juego (HOME)"
+          "Lineup no disponible aÃºn para el prÃ³ximo juego (HOME)"
         );
       }
       // AWAY
@@ -704,13 +744,13 @@ export default function Game() {
         setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
         if (usedPredAway) {
           setErrLineupAway(
-            "Lineup no disponible; usando predicción basada en juegos recientes."
+            "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
           );
-          setAwayLineupInfo(`Predicción anclada a gamePk ${gamePk}`);
+          setAwayLineupInfo(`PredicciÃ³n anclada a gamePk ${gamePk}`);
         }
       } else {
         setErrLineupAway(
-          "Lineup no disponible aún para el próximo juego (AWAY)"
+          "Lineup no disponible aÃºn para el prÃ³ximo juego (AWAY)"
         );
       }
 
@@ -891,7 +931,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar selección o temporada
+  // Refrescar stats al cambiar selecciÃ³n o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       // Reset: los hooks de summary/roster/probable se encargan del fetch
@@ -913,7 +953,7 @@ export default function Game() {
     }
   }, [awayTeamId, season]);
 
-  // Anclar automáticamente si ambos próximos gamePk coinciden
+  // Anclar automÃ¡ticamente si ambos prÃ³ximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -931,30 +971,86 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa predicción pero el anclaje deja un mensaje genérico de no-disponible
+  // Armoniza mensajes cuando se usa predicciÃ³n pero el anclaje deja un mensaje genÃ©rico de no-disponible
   useEffect(() => {
     if (
       awayLineupInfo &&
-      awayLineupInfo.includes("Predicción") &&
+      awayLineupInfo.includes("PredicciÃ³n") &&
       errLineupAway &&
       errLineupAway.startsWith("Lineup no disponible")
     ) {
       setErrLineupAway(
-        "Lineup no disponible; usando predicción basada en juegos recientes."
+        "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
       );
     }
     if (
       homeLineupInfo &&
-      homeLineupInfo.includes("Predicción") &&
+      homeLineupInfo.includes("PredicciÃ³n") &&
       errLineupHome &&
       errLineupHome.startsWith("Lineup no disponible")
     ) {
       setErrLineupHome(
-        "Lineup no disponible; usando predicción basada en juegos recientes."
+        "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
       );
     }
   }, [awayLineupInfo, errLineupAway, homeLineupInfo, errLineupHome]);
 
+  // Aplicar lineup del próximo juego (si no hay anclaje)
+  useEffect(() => {
+    if (anchorGamePk) return;
+    const st = homeNextLineupState;
+    if (st?.data) {
+      setHomeBatRoster(st.data.roster);
+      setHomeLineupInfo(((st.predicted ? "Predicción" : "") + " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
+      setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      setHomeGamePk(st.data.gamePk ?? null);
+    }
+  }, [homeNextLineupState.data, homeNextLineupState.predicted, anchorGamePk]);
+
+  useEffect(() => {
+    if (anchorGamePk) return;
+    const st = awayNextLineupState;
+    if (st?.data) {
+      setAwayBatRoster(st.data.roster);
+      setAwayLineupInfo(((st.predicted ? "Predicción" : "") + " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
+      setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      setAwayGamePk(st.data.gamePk ?? null);
+    }
+  }, [awayNextLineupState.data, awayNextLineupState.predicted, anchorGamePk]);
+
+  // Loading flags cuando no hay anclaje (para botones)
+  useEffect(() => { if (!anchorGamePk) setLoadingLineupHome(!!homeNextLineupState.loading); }, [homeNextLineupState.loading, anchorGamePk]);
+  useEffect(() => { if (!anchorGamePk) setLoadingLineupAway(!!awayNextLineupState.loading); }, [awayNextLineupState.loading, anchorGamePk]);
+
+  // Aplicar resultados de lineups anclados
+  useEffect(() => {
+    if (!anchorGamePk) return;
+    setLoadingLineupHome(!!anchoredState.loading);
+    setLoadingLineupAway(!!anchoredState.loading);
+    const d = anchoredState.data;
+    if (d) {
+      if (d.home?.roster) {
+        setHomeBatRoster(d.home.roster);
+        setHomeLineupInfo(d.home.info ?? `Anclado a gamePk ${anchorGamePk}`);
+        setErrLineupHome(d.home.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      } else {
+        setErrLineupHome("Lineup no disponible aún para el próximo juego (HOME)");
+      }
+      if (d.away?.roster) {
+        setAwayBatRoster(d.away.roster);
+        setAwayLineupInfo(d.away.info ?? `Anclado a gamePk ${anchorGamePk}`);
+        setErrLineupAway(d.away.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      } else {
+        setErrLineupAway("Lineup no disponible aún para el próximo juego (AWAY)");
+      }
+      if (d.hands?.home) setHomePitcherHand(d.hands.home);
+      if (d.hands?.away) setAwayPitcherHand(d.hands.away);
+    }
+    if (anchoredState.error) {
+      setErrLineupHome(anchoredState.error);
+      setErrLineupAway(anchoredState.error);
+    }
+  }, [anchoredState.data, anchoredState.loading, anchoredState.error, anchorGamePk]);
   // Vista previa de probs para la mitad ACTUAL (solo lectura UI)
   const currentProbs = useMemo(() => {
     if (useLineup) {
@@ -968,9 +1064,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos cálculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquí simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisiéramos, podríamos exponer el buff actual aquí
+        // Buff por tendencia (reutilizamos cÃ¡lculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃ­ simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisiÃ©ramos, podrÃ­amos exponer el buff actual aquÃ­
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -1262,7 +1358,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar índice de lineup del lado que batea
+    // Avanzar Ã­ndice de lineup del lado que batea
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1287,7 +1383,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulación ------------------
+  // ------------------ Auto-simulaciÃ³n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1404,7 +1500,7 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de Béisbol</h1>
+          <h1 className="h-hero">Simulador de BÃ©isbol</h1>
 
           <ScoreboardPanel
             statusLine={statusLine}
@@ -1501,13 +1597,13 @@ export default function Game() {
             <div className="h2">Abridores</div>
             <div className="muted" style={{ display: "grid", gap: 6 }}>
               <div>
-                <strong>AWAY</strong>: {awayStarterName ?? "-"} — ERA{" "}
+                <strong>AWAY</strong>: {awayStarterName ?? "-"} â€” ERA{" "}
                 {awayStarterERA != null ? awayStarterERA.toFixed(2) : "-"} /
                 WHIP{" "}
                 {awayStarterWHIP != null ? awayStarterWHIP.toFixed(2) : "-"}
               </div>
               <div>
-                <strong>HOME</strong>: {homeStarterName ?? "-"} — ERA{" "}
+                <strong>HOME</strong>: {homeStarterName ?? "-"} â€” ERA{" "}
                 {homeStarterERA != null ? homeStarterERA.toFixed(2) : "-"} /
                 WHIP{" "}
                 {homeStarterWHIP != null ? homeStarterWHIP.toFixed(2) : "-"}
