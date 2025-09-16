@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";
@@ -368,7 +368,7 @@ export default function Game() {
   const [idxHome, setIdxHome] = useState(0);
   const [idxAway, setIdxAway] = useState(0);
 
-  // Anclaje por gamePk si ambos equipos comparten el prÃ³ximo juego
+  // Anclaje por gamePk si ambos equipos comparten el prÃƒÂ³ximo juego
   const [homeGamePk, setHomeGamePk] = useState<number | null>(null);
   const [awayGamePk, setAwayGamePk] = useState<number | null>(null);
   const [anchorGamePk, setAnchorGamePk] = useState<number | null>(null);
@@ -382,7 +382,7 @@ export default function Game() {
   const [homeLineupInfo, setHomeLineupInfo] = useState<string | null>(null);
   const [awayLineupInfo, setAwayLineupInfo] = useState<string | null>(null);
 
-  // Hooks de lineups (prÃ³ximo juego y anclado)
+  // Hooks de lineups (prÃƒÂ³ximo juego y anclado)
   const homeNextLineupState = useNextGameLineupHook(
     typeof homeTeamId === "number" ? homeTeamId : undefined,
     season
@@ -409,22 +409,22 @@ export default function Game() {
       return;
     }
     if (st?.data) {
-      const infoTxt = ((st.predicted ? "Predicción" : "") +
-        " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim();
+      const infoTxt = ((st.predicted ? "PredicciÃ³n" : "") +
+        " vs prÃ³ximo juego " + new Date(st.data.gameDate).toLocaleString()).trim();
       if (which === "home") {
         setHomeBatRoster(st.data.roster);
         setHomeLineupInfo(infoTxt);
-        setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
         setHomeGamePk(st.data.gamePk ?? null);
       } else {
         setAwayBatRoster(st.data.roster);
         setAwayLineupInfo(infoTxt);
-        setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
         setAwayGamePk(st.data.gamePk ?? null);
       }
       return;
     }
-    const msg = "Lineup no disponible aún para el próximo juego";
+    const msg = "Lineup no disponible aÃºn para el prÃ³ximo juego";
     if (which === "home") setErrLineupHome(msg);
     else setErrLineupAway(msg);
   }
@@ -514,7 +514,7 @@ export default function Game() {
     [season]
   );
 
-  // Refrescar stats al cambiar selecciÃ³n o temporada
+  // Refrescar stats al cambiar selecciÃƒÂ³n o temporada
   useEffect(() => {
     if (homeTeamId && typeof homeTeamId === "number") {
       // Reset: los hooks de summary/roster/probable se encargan del fetch
@@ -536,7 +536,7 @@ export default function Game() {
     }
   }, [awayTeamId, season]);
 
-  // Anclar automÃ¡ticamente si ambos prÃ³ximos gamePk coinciden
+  // Anclar automÃƒÂ¡ticamente si ambos prÃƒÂ³ximos gamePk coinciden
   useEffect(() => {
     if (
       homeGamePk != null &&
@@ -554,38 +554,38 @@ export default function Game() {
     }
   }, [homeGamePk, awayGamePk]);
 
-  // Armoniza mensajes cuando se usa predicciÃ³n pero el anclaje deja un mensaje genÃ©rico de no-disponible
+  // Armoniza mensajes cuando se usa predicciÃƒÂ³n pero el anclaje deja un mensaje genÃƒÂ©rico de no-disponible
   useEffect(() => {
     if (
       awayLineupInfo &&
-      awayLineupInfo.includes("PredicciÃ³n") &&
+      awayLineupInfo.includes("PredicciÃƒÂ³n") &&
       errLineupAway &&
       errLineupAway.startsWith("Lineup no disponible")
     ) {
       setErrLineupAway(
-        "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
+        "Lineup no disponible; usando predicciÃƒÂ³n basada en juegos recientes."
       );
     }
     if (
       homeLineupInfo &&
-      homeLineupInfo.includes("PredicciÃ³n") &&
+      homeLineupInfo.includes("PredicciÃƒÂ³n") &&
       errLineupHome &&
       errLineupHome.startsWith("Lineup no disponible")
     ) {
       setErrLineupHome(
-        "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
+        "Lineup no disponible; usando predicciÃƒÂ³n basada en juegos recientes."
       );
     }
   }, [awayLineupInfo, errLineupAway, homeLineupInfo, errLineupHome]);
 
-  // Aplicar lineup del próximo juego (si no hay anclaje)
+  // Aplicar lineup del prÃ³ximo juego (si no hay anclaje)
   useEffect(() => {
     if (anchorGamePk) return;
     const st = homeNextLineupState;
     if (st?.data) {
       setHomeBatRoster(st.data.roster);
-      setHomeLineupInfo(((st.predicted ? "Predicción" : "") + " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
-      setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      setHomeLineupInfo(((st.predicted ? "PredicciÃ³n" : "") + " vs prÃ³ximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
+      setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
       setHomeGamePk(st.data.gamePk ?? null);
     }
   }, [homeNextLineupState.data, homeNextLineupState.predicted, anchorGamePk]);
@@ -595,8 +595,8 @@ export default function Game() {
     const st = awayNextLineupState;
     if (st?.data) {
       setAwayBatRoster(st.data.roster);
-      setAwayLineupInfo(((st.predicted ? "Predicción" : "") + " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
-      setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+      setAwayLineupInfo(((st.predicted ? "PredicciÃ³n" : "") + " vs prÃ³ximo juego " + new Date(st.data.gameDate).toLocaleString()).trim());
+      setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
       setAwayGamePk(st.data.gamePk ?? null);
     }
   }, [awayNextLineupState.data, awayNextLineupState.predicted, anchorGamePk]);
@@ -615,16 +615,16 @@ export default function Game() {
       if (d.home?.roster) {
         setHomeBatRoster(d.home.roster);
         setHomeLineupInfo(d.home.info ?? `Anclado a gamePk ${anchorGamePk}`);
-        setErrLineupHome(d.home.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setErrLineupHome(d.home.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
       } else {
-        setErrLineupHome("Lineup no disponible aún para el próximo juego (HOME)");
+        setErrLineupHome("Lineup no disponible aÃºn para el prÃ³ximo juego (HOME)");
       }
       if (d.away?.roster) {
         setAwayBatRoster(d.away.roster);
         setAwayLineupInfo(d.away.info ?? `Anclado a gamePk ${anchorGamePk}`);
-        setErrLineupAway(d.away.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setErrLineupAway(d.away.predicted ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes." : null);
       } else {
-        setErrLineupAway("Lineup no disponible aún para el próximo juego (AWAY)");
+        setErrLineupAway("Lineup no disponible aÃºn para el prÃ³ximo juego (AWAY)");
       }
       if (d.hands?.home) setHomePitcherHand(d.hands.home);
       if (d.hands?.away) setAwayPitcherHand(d.hands.away);
@@ -647,9 +647,9 @@ export default function Game() {
         const rate = pickRateLine(batter, pHand);
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
-        // Buff por tendencia (reutilizamos cÃ¡lculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃ­ simplificamos a neutro (0)
-        const pfBuffTop = 1; // si quisiÃ©ramos, podrÃ­amos exponer el buff actual aquÃ­
+        // Buff por tendencia (reutilizamos cÃƒÂ¡lculo de abajo en computeStep)
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃƒÂ­ simplificamos a neutro (0)
+        const pfBuffTop = 1; // si quisiÃƒÂ©ramos, podrÃƒÂ­amos exponer el buff actual aquÃƒÂ­
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -941,7 +941,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar Ã­ndice de lineup del lado que batea
+    // Avanzar ÃƒÂ­ndice de lineup del lado que batea
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -966,7 +966,7 @@ export default function Game() {
     setAuto(false);
   }
 
-  // ------------------ Auto-simulaciÃ³n ------------------
+  // ------------------ Auto-simulaciÃƒÂ³n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1083,7 +1083,7 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de Béisbol</h1>
+          <h1 className="h-hero">Simulador de BÃ©isbol</h1>
 
           <ScoreboardPanel
             statusLine={statusLine}
@@ -1180,16 +1180,14 @@ export default function Game() {
             <div className="h2">Abridores</div>
             <div className="muted" style={{ display: "grid", gap: 6 }}>
               <div>
-                <strong>AWAY</strong>: {awayStarterName ?? "-"} â€” ERA{" "}
-                {awayStarterERA != null ? awayStarterERA.toFixed(2) : "-"} /
-                WHIP{" "}
-                {awayStarterWHIP != null ? awayStarterWHIP.toFixed(2) : "-"}
+                <strong>AWAY</strong>: {awayStarterName ?? "-"} — ERA 
+                 {awayStarterERA != null ? awayStarterERA.toFixed(2) : "-"} /
+                WHIP {awayStarterWHIP != null ? awayStarterWHIP.toFixed(2) : "-"}
               </div>
               <div>
-                <strong>HOME</strong>: {homeStarterName ?? "-"} â€” ERA{" "}
-                {homeStarterERA != null ? homeStarterERA.toFixed(2) : "-"} /
-                WHIP{" "}
-                {homeStarterWHIP != null ? homeStarterWHIP.toFixed(2) : "-"}
+                <strong>HOME</strong>: {homeStarterName ?? "-"} — ERA 
+                 {homeStarterERA != null ? homeStarterERA.toFixed(2) : "-"} /
+                WHIP {homeStarterWHIP != null ? homeStarterWHIP.toFixed(2) : "-"}
               </div>
             </div>
           </div>
