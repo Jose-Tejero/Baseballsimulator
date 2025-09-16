@@ -22,7 +22,6 @@ import {
   type Hand,
   type RateLine,
   type Batter,
-  type BatterRates,
   type Roster,
   eventProbsFromRateLine,
   pickRateLine,
@@ -39,18 +38,8 @@ import {
   getTeamRoster,
   getPlayerPitchingStats,
   getPlayerPitchingGameLog,
-  getNextGameLineup,
-  predictNextGameLineup,
-  getGameLineup,
-  getPlayerHittingStats,
-  getPlayerInfo,
-  getGameProbables,
-  getGameTeams,
-  getRecentLineupsForTeam,
-  predictLineupFromRecent,
   type Team,
   type RosterPlayer,
-  type PlayerHitting,
 } from "./services/mlb";
 import {
   useTeams,
@@ -407,387 +396,48 @@ export default function Game() {
   );
   const anchoredState = useAnchoredLineupsHook(anchorGamePk, season);
 
-  // Construir RateLine desde stats de bateo
-  const toRateLineFromHitting = (s: PlayerHitting): RateLine => {
-    const pa = Math.max(0, Number(s.pa ?? 0));
-    const safe = pa > 0 ? pa : 1;
-    const h = Math.max(0, Number(s.h ?? 0)) / safe;
-    const hr = Math.max(0, Number(s.hr ?? 0)) / safe;
-    const doubles = Math.max(0, Number(s.doubles ?? 0)) / safe;
-    const triples = Math.max(0, Number(s.triples ?? 0)) / safe;
-    const bb = Math.max(0, Number(s.bb ?? 0)) / safe;
-    const k = Math.max(0, Number(s.so ?? 0)) / safe;
-    const hbp = Math.max(0, Number(s.hbp ?? 0)) / safe;
-    return { h, hr, double: doubles, triple: triples, bb, k, hbp } as RateLine;
-  };
+  // (legacy) toRateLineFromHitting eliminado: los hooks construyen los rosters
 
-  async function loadRealLineup(which: "home" | "away") {
-    // Hook-first: si ya tenemos lineup del prÃ³ximo juego, aplicarlo sin refetch
+    async function loadRealLineup(which: "home" | "away") {
     const st = which === "home" ? homeNextLineupState : awayNextLineupState;
-    if (st?.error) {
-      if (which === "home") setErrLineupHome(st.error);
-      else setErrLineupAway(st.error);
-      return;
-    }
-    if (st?.data) {
-      const infoTxt = ((st.predicted ? "PredicciÃ³n" : "") +
-        " vs prÃ³ximo juego " + new Date(st.data.gameDate).toLocaleString()).trim();
-      if (which === "home") {
-        setHomeBatRoster(st.data.roster);
-        setHomeLineupInfo(infoTxt);
-        setErrLineupHome(st.predicted
-          ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-          : null);
-        setHomeGamePk(st.data.gamePk ?? null);
-      } else {
-        setAwayBatRoster(st.data.roster);
-        setAwayLineupInfo(infoTxt);
-        setErrLineupAway(st.predicted
-          ? "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-          : null);
-        setAwayGamePk(st.data.gamePk ?? null);
-      }
-      return;
-    }
     const teamId = which === "home" ? homeTeamId : awayTeamId;
     if (!teamId || typeof teamId !== "number") {
       if (which === "home") setErrLineupHome("Selecciona equipo HOME");
       else setErrLineupAway("Selecciona equipo AWAY");
       return;
     }
-    which === "home" ? setLoadingLineupHome(true) : setLoadingLineupAway(true);
-    which === "home" ? setErrLineupHome(null) : setErrLineupAway(null);
-    try {
-      const info = await getNextGameLineup(teamId, {
-        daysAhead: 10,
-        gameType: "R",
-      });
-      if (!info.lineup.length)
-        throw new Error("Lineup no disponible aÃºn para el prÃ³ximo juego");
-      // Para cada bateador, obtener splits vs L/R
-      const seasonForStats = season;
-      const playerEntries = await Promise.all(
-        info.lineup.map(async (b) => {
-          // Intentar splits por mano del pitcher
-          const [vsL, vsR] = await Promise.all([
-            getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
-              () => ({} as PlayerHitting)
-            ),
-            getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
-              () => ({} as PlayerHitting)
-            ),
-          ]);
-          const pinfo = await getPlayerInfo(b.id).catch(() => null);
-          // Fallback overall si alguna split viene vacias
-          let overall: PlayerHitting | null = null;
-          if (!vsL.pa || !vsR.pa) {
-            overall = await getPlayerHittingStats(
-              b.id,
-              seasonForStats,
-              "R"
-            ).catch(() => ({} as PlayerHitting));
-          }
-          const mk = (s: PlayerHitting | null | undefined) =>
-            toRateLineFromHitting(
-              s && s.pa ? s : overall ?? ({} as PlayerHitting)
-            );
-          const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-          const handRaw =
-            (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
-          const hand: Hand =
-            handRaw === "L" || handRaw === "R" || handRaw === "S"
-              ? handRaw
-              : "R";
-          return { id: String(b.id), name: b.fullName, hand, rates } as Batter;
-        })
-      );
-      const players: Record<string, Batter> = {};
-      for (const p of playerEntries) players[p.id] = p;
-      const orderIds = info.lineup.map((b) => String(b.id));
-      const roster: Roster = {
-        players,
-        lineupVsL: orderIds,
-        lineupVsR: orderIds,
-      };
-      if (which === "home") {
-        setHomeBatRoster(roster);
-        setHomeLineupInfo(
-          `${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(
-            info.gameDate
-          ).toLocaleString()}`
-        );
-      } else {
-        setAwayBatRoster(roster);
-        setAwayLineupInfo(
-          `${info.side.toUpperCase()} vs prÃ³ximo juego ${new Date(
-            info.gameDate
-          ).toLocaleString()}`
-        );
-      }
-    } catch (e: any) {
-      // Fallback: intentar predicciÃ³n de lineup con juegos recientes
-      try {
-        const pred = await predictNextGameLineup(teamId, {
-          daysAhead: 10,
-          recentLimit: 3,
-          gameType: "R",
-        });
-        if (pred.lineup && pred.lineup.length) {
-          const seasonForStats = season;
-          const playerEntries = await Promise.all(
-            pred.lineup.map(async (b) => {
-              const [vsL, vsR] = await Promise.all([
-                getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
-                  () => ({} as PlayerHitting)
-                ),
-                getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
-                  () => ({} as PlayerHitting)
-                ),
-              ]);
-              const pinfo = await getPlayerInfo(b.id).catch(() => null);
-              let overall: PlayerHitting | null = null;
-              if (!vsL.pa || !vsR.pa) {
-                overall = await getPlayerHittingStats(
-                  b.id,
-                  seasonForStats,
-                  "R"
-                ).catch(() => ({} as PlayerHitting));
-              }
-              const mk = (s: PlayerHitting | null | undefined) =>
-                toRateLineFromHitting(
-                  s && s.pa ? s : overall ?? ({} as PlayerHitting)
-                );
-              const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-              const handRaw =
-                (b.batSide as Hand) ||
-                (pinfo?.batSide as Hand) ||
-                ("R" as Hand);
-              const hand: Hand =
-                handRaw === "L" || handRaw === "R" || handRaw === "S"
-                  ? handRaw
-                  : "R";
-              return {
-                id: String(b.id),
-                name: b.fullName,
-                hand,
-                rates,
-              } as Batter;
-            })
-          );
-          const players: Record<string, Batter> = {};
-          for (const p of playerEntries) players[p.id] = p;
-          const orderIds = pred.lineup.map((b) => String(b.id));
-          const roster: Roster = {
-            players,
-            lineupVsL: orderIds,
-            lineupVsR: orderIds,
-          };
-          if (which === "home") {
-            setHomeBatRoster(roster);
-            setHomeLineupInfo(
-              `PredicciÃ³n vs prÃ³ximo juego ${new Date(
-                pred.gameDate
-              ).toLocaleString()}`
-            );
-            setErrLineupHome(
-              "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-            );
-          } else {
-            setAwayBatRoster(roster);
-            setAwayLineupInfo(
-              `PredicciÃ³n vs prÃ³ximo juego ${new Date(
-                pred.gameDate
-              ).toLocaleString()}`
-            );
-            setErrLineupAway(
-              "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-            );
-          }
-          return;
-        }
-      } catch {}
-      const msg = e?.message ? String(e.message) : "Error al cargar lineup";
-      if (which === "home") setErrLineupHome(msg);
-      else setErrLineupAway(msg);
-    } finally {
-      which === "home"
-        ? setLoadingLineupHome(false)
-        : setLoadingLineupAway(false);
+    if (st?.error) {
+      if (which === "home") setErrLineupHome(st.error);
+      else setErrLineupAway(st.error);
+      return;
     }
+    if (st?.data) {
+      const infoTxt = ((st.predicted ? "Predicción" : "") +
+        " vs próximo juego " + new Date(st.data.gameDate).toLocaleString()).trim();
+      if (which === "home") {
+        setHomeBatRoster(st.data.roster);
+        setHomeLineupInfo(infoTxt);
+        setErrLineupHome(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setHomeGamePk(st.data.gamePk ?? null);
+      } else {
+        setAwayBatRoster(st.data.roster);
+        setAwayLineupInfo(infoTxt);
+        setErrLineupAway(st.predicted ? "Lineup no disponible; usando predicción basada en juegos recientes." : null);
+        setAwayGamePk(st.data.gamePk ?? null);
+      }
+      return;
+    }
+    const msg = "Lineup no disponible aún para el próximo juego";
+    if (which === "home") setErrLineupHome(msg);
+    else setErrLineupAway(msg);
   }
-
-  // Carga ambos lineups anclados a un mismo gamePk y fija manos de abridores de ese juego
   async function loadAnchoredLineups(gamePk: number) {
+    // Hook-first: fijar ancla y delegar a useAnchoredLineups
     setAnchorGamePk(gamePk);
     setAnchorInfo(`Juego ancla: ${gamePk}`);
-    setLoadingLineupHome(true);
-    setLoadingLineupAway(true);
     setErrLineupHome(null);
     setErrLineupAway(null);
-    try {
-      const [lh, la] = await Promise.all([
-        getGameLineup(gamePk, "home").catch(() => [] as any[]),
-        getGameLineup(gamePk, "away").catch(() => [] as any[]),
-      ]);
-      let lhome = lh as any[];
-      let laway = la as any[];
-      let usedPredHome = false;
-      let usedPredAway = false;
-      const seasonForStats = season;
-      // Intentar conocer teamIds para poder predecir si falta lineup
-      let homeTid: number | undefined;
-      let awayTid: number | undefined;
-      try {
-        const teams = await getGameTeams(gamePk);
-        homeTid =
-          typeof teams?.homeTeamId === "number" ? teams.homeTeamId : undefined;
-        awayTid =
-          typeof teams?.awayTeamId === "number" ? teams.awayTeamId : undefined;
-      } catch {}
-      // Helper to build roster from lineup list
-      const buildRoster = async (
-        arr: { id: number; fullName: string; batSide?: string }[]
-      ): Promise<Roster> => {
-        const batters: Batter[] = await Promise.all(
-          arr.slice(0, 9).map(async (b) => {
-            const [vsL, vsR] = await Promise.all([
-              getPlayerHittingStats(b.id, seasonForStats, "R", "L").catch(
-                () => ({} as PlayerHitting)
-              ),
-              getPlayerHittingStats(b.id, seasonForStats, "R", "R").catch(
-                () => ({} as PlayerHitting)
-              ),
-            ]);
-            const pinfo = await getPlayerInfo(b.id).catch(() => null);
-            let overall: PlayerHitting | null = null;
-            if (!vsL.pa || !vsR.pa) {
-              overall = await getPlayerHittingStats(
-                b.id,
-                seasonForStats,
-                "R"
-              ).catch(() => ({} as PlayerHitting));
-            }
-            const mk = (s: PlayerHitting | null | undefined) =>
-              toRateLineFromHitting(
-                s && s.pa ? s : overall ?? ({} as PlayerHitting)
-              );
-            const rates = { vsL: mk(vsL), vsR: mk(vsR) } as BatterRates;
-            const handRaw =
-              (b.batSide as Hand) || (pinfo?.batSide as Hand) || ("R" as Hand);
-            const hand: Hand =
-              handRaw === "L" || handRaw === "R" || handRaw === "S"
-                ? handRaw
-                : "R";
-            return {
-              id: String(b.id),
-              name: b.fullName,
-              hand,
-              rates,
-            } as Batter;
-          })
-        );
-        const players: Record<string, Batter> = {};
-        batters.forEach((p) => (players[p.id] = p));
-        const orderIds = arr.slice(0, 9).map((b) => String(b.id));
-        return { players, lineupVsL: orderIds, lineupVsR: orderIds } as Roster;
-      };
-
-      // Si no hay lineup oficial, intentar predicciÃ³n por juegos recientes
-      if (
-        (!Array.isArray(lhome) || lhome.length === 0) &&
-        typeof homeTid === "number"
-      ) {
-        try {
-          const recent = await getRecentLineupsForTeam(homeTid, { limit: 3 });
-          const pred = predictLineupFromRecent(recent);
-          if (pred.length) {
-            lhome = pred as any[];
-            usedPredHome = true;
-          }
-        } catch {}
-      }
-      if (
-        (!Array.isArray(laway) || laway.length === 0) &&
-        typeof awayTid === "number"
-      ) {
-        try {
-          const recentA = await getRecentLineupsForTeam(awayTid, { limit: 3 });
-          const predA = predictLineupFromRecent(recentA);
-          if (predA.length) {
-            laway = predA as any[];
-            usedPredAway = true;
-          }
-        } catch {}
-      }
-      // HOME
-      if (Array.isArray(lhome) && lhome.length > 0) {
-        const homeRosterBuilt = await buildRoster(lhome);
-        setHomeBatRoster(homeRosterBuilt);
-        setErrLineupHome(null);
-        setHomeLineupInfo(`Anclado a gamePk ${gamePk}`);
-        if (usedPredHome) {
-          setErrLineupHome(
-            "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-          );
-          setHomeLineupInfo(`PredicciÃ³n anclada a gamePk ${gamePk}`);
-        }
-      } else {
-        setErrLineupHome(
-          "Lineup no disponible aÃºn para el prÃ³ximo juego (HOME)"
-        );
-      }
-      // AWAY
-      if (Array.isArray(laway) && laway.length > 0) {
-        const awayRosterBuilt = await buildRoster(laway);
-        setAwayBatRoster(awayRosterBuilt);
-        setErrLineupAway(null);
-        setAwayLineupInfo(`Anclado a gamePk ${gamePk}`);
-        if (usedPredAway) {
-          setErrLineupAway(
-            "Lineup no disponible; usando predicciÃ³n basada en juegos recientes."
-          );
-          setAwayLineupInfo(`PredicciÃ³n anclada a gamePk ${gamePk}`);
-        }
-      } else {
-        setErrLineupAway(
-          "Lineup no disponible aÃºn para el prÃ³ximo juego (AWAY)"
-        );
-      }
-
-      // Probables y mano desde el mismo juego anclado
-      try {
-        const gp = await getGameProbables(gamePk);
-        if (gp?.home?.id) {
-          getPlayerInfo(gp.home.id)
-            .then((pi) => {
-              if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
-                setHomePitcherHand(pi.pitchHand as Hand);
-            })
-            .catch(() => {});
-        }
-        if (gp?.away?.id) {
-          getPlayerInfo(gp.away.id)
-            .then((pi) => {
-              if (pi?.pitchHand === "L" || pi?.pitchHand === "R")
-                setAwayPitcherHand(pi.pitchHand as Hand);
-            })
-            .catch(() => {});
-        }
-      } catch {
-        // ignore; hands will remain as previously detected
-      }
-    } catch (e: any) {
-      const msg = e?.message
-        ? String(e.message)
-        : "Error al cargar lineups anclados";
-      setErrLineupHome(msg);
-      setErrLineupAway(msg);
-    } finally {
-      setLoadingLineupHome(false);
-      setLoadingLineupAway(false);
-    }
   }
-
   // Cargar listado de equipos para la temporada (integrado arriba con hook)
 
   const loadTeamStats = useCallback(
@@ -2163,3 +1813,5 @@ function narratePlay(
     </div>
   );
 } */
+
+
