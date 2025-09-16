@@ -1,4 +1,4 @@
-﻿import { computeEraBuff, type GameERIP } from "../../engine/eraBuff";
+import { computeEraBuff, type GameERIP } from "../../engine/eraBuff";
 import { MiniLineChart } from "./MiniLineChart";
 
 export function EraTrendCard({

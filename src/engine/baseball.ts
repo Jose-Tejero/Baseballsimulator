@@ -1,4 +1,4 @@
-﻿// Tipos y motor (Nivel 2: AVGAOBPASLGAERA)
+// Tipos y motor (Nivel 2: AVGAOBPASLGAERA)
 
 export type Bases = { first: boolean; second: boolean; third: boolean };
 export type Half = "top" | "bottom";

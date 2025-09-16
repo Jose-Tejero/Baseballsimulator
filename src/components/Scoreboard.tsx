@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 
 type Bases = { first: boolean; second: boolean; third: boolean }
 

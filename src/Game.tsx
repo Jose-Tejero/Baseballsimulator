@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 // UI helpers now used via panels
 import { LogPanel } from "./components/LogPanel";
 import { RulesPanel } from "./components/RulesPanel";

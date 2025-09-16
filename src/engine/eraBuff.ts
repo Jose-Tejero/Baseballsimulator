@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ERA trend-based buff/nerf module.
  *
  * Dado un historial por juego de ER e IP de un lanzador, calcula:

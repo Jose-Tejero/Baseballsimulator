@@ -1,4 +1,4 @@
-﻿import { Field } from "./ui/Field";
+import { Field } from "./ui/Field";
 import { SteppedNumber } from "./ui/SteppedNumber";
 import type { Team } from "../services/mlb";
 import type { RosterPlayer } from "../services/mlb";
