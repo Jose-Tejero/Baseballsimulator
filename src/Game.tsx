@@ -1083,7 +1083,7 @@ export default function Game() {
       <div className="container grid">
         {/* IZQ: marcador */}
         <section style={{ display: "grid", gap: 24 }}>
-          <h1 className="h-hero">Simulador de BÃ©isbol</h1>
+          <h1 className="h-hero">Simulador de Béisbol</h1>
 
           <ScoreboardPanel
             statusLine={statusLine}
@@ -1573,6 +1573,7 @@ function narratePlay(
 
   return line;
 }
+
 
 
 
