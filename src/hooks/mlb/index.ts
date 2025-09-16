@@ -5,4 +5,4 @@ export * from "./useProbable";
 export * from "./useNextGameLineup";
 export * from "./useAnchoredLineups";
 export * from "./utils";
-
+export * from "./usePitcherStats";
