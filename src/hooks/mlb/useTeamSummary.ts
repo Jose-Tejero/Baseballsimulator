@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getTeamSummary, type TeamHitting, type TeamPitching } from "../../services/mlb";
 import { AsyncCache, keyOf, type LoadState } from "../types";
 
@@ -7,6 +7,7 @@ const cache = new AsyncCache<Summary | null>();
 
 export function useTeamSummary(teamId?: number | "", season?: number) {
   const [state, setState] = useState<LoadState<Summary>>({ data: null, loading: false, error: null });
+  const [refreshIndex, setRefreshIndex] = useState(0);
 
   useEffect(() => {
     if (!teamId || typeof teamId !== "number" || !season) {
@@ -37,8 +38,15 @@ export function useTeamSummary(teamId?: number | "", season?: number) {
     return () => {
       aborted = true;
     };
+  }, [teamId, season, refreshIndex]);
+
+  const refresh = useCallback(() => {
+    if (!teamId || typeof teamId !== "number" || !season) return;
+    const key = keyOf("teamSummary", teamId, season);
+    cache.delete(key);
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setRefreshIndex((idx) => idx + 1);
   }, [teamId, season]);
 
-  return state;
+  return { ...state, refresh };
 }
-

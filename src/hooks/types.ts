@@ -32,5 +32,9 @@ export class AsyncCache<T = unknown> {
     this.inflight.set(key, p);
     p.finally(() => this.inflight.delete(key));
   }
-}
 
+  delete(key: string) {
+    this.data.delete(key);
+    this.inflight.delete(key);
+  }
+}

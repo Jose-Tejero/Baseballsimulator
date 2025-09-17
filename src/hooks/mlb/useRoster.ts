@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getTeamRoster, type RosterPlayer } from "../../services/mlb";
 import { AsyncCache, keyOf, type LoadStateWithMeta } from "../types";
 
@@ -12,6 +12,7 @@ export function useRoster(teamId?: number | "", season?: number) {
     error: null,
     count: 0,
   });
+  const [refreshIndex, setRefreshIndex] = useState(0);
 
   useEffect(() => {
     if (!teamId || typeof teamId !== "number" || !season) {
@@ -33,7 +34,7 @@ export function useRoster(teamId?: number | "", season?: number) {
       .then((data) => {
         if (aborted) return;
         cache.set(key, data);
-        setState({ data, loading: false, error: null, count: (data?.length ?? 0) });
+        setState({ data, loading: false, error: null, count: data?.length ?? 0 });
       })
       .catch((e) => {
         if (aborted) return;
@@ -42,7 +43,15 @@ export function useRoster(teamId?: number | "", season?: number) {
     return () => {
       aborted = true;
     };
+  }, [teamId, season, refreshIndex]);
+
+  const refresh = useCallback(() => {
+    if (!teamId || typeof teamId !== "number" || !season) return;
+    const key = keyOf("roster", teamId, season);
+    cache.delete(key);
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setRefreshIndex((idx) => idx + 1);
   }, [teamId, season]);
 
-  return state;
+  return { ...state, refresh };
 }
