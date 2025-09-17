@@ -7,6 +7,8 @@ import { TeamModelPanel } from "./components/TeamModelPanel";
 import { MonteCarloPanel } from "./components/MonteCarloPanel";
 import { LineupPanel } from "./components/LineupPanel";
 import { ScoreboardPanel } from "./components/ScoreboardPanel";
+import { GameControls } from "./components/GameControls";
+import { StartersCard } from "./components/StartersCard";
 import {
   applyEvent,
   initialState,
@@ -974,6 +976,22 @@ export default function Game() {
     setAuto(false);
   }
 
+  const startAuto = useCallback(
+    (nextMode: "free" | "half" | "game") => {
+      setMode(nextMode);
+      setAuto(true);
+    },
+    [setMode, setAuto]
+  );
+
+  const handleAutoFree = useCallback(() => startAuto("free"), [startAuto]);
+  const handleAutoHalf = useCallback(() => startAuto("half"), [startAuto]);
+  const handleAutoGame = useCallback(() => startAuto("game"), [startAuto]);
+  const handleStopAuto = useCallback(() => setAuto(false), [setAuto]);
+  const handleDelayChange = useCallback((value: number) => {
+    setDelay(value);
+  }, [setDelay]);
+
     // ------------------ Auto-simulaci�n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
@@ -1101,63 +1119,17 @@ export default function Game() {
             bases={gs.bases}
           >
             <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button className="button" onClick={stepOnce}>
-                  Jugar 1 turno
-                </button>
-                {!auto ? (
-                  <>
-                    <button
-                      className="button secondary"
-                      onClick={() => {
-                        setMode("free");
-                        setAuto(true);
-                      }}
-                    >
-                      Auto (libre)
-                    </button>
-                    <button
-                      className="button secondary"
-                      onClick={() => {
-                        setMode("half");
-                        setAuto(true);
-                      }}
-                    >
-                      Auto (media)
-                    </button>
-                    <button
-                      className="button secondary"
-                      onClick={() => {
-                        setMode("game");
-                        setAuto(true);
-                      }}
-                    >
-                      Auto (juego)
-                    </button>
-                  </>
-                ) : (
-                  <button className="button" onClick={() => setAuto(false)}>
-                    Detener auto
-                  </button>
-                )}
-                <button className="button" onClick={resetGame}>
-                  Reset
-                </button>
-              </div>
-              <div className="field">
-                <label>
-                  <strong>Velocidad auto (ms por turno): {delay}</strong>
-                </label>
-                <input
-                  type="range"
-                  min={50}
-                  max={1500}
-                  step={50}
-                  value={delay}
-                  onChange={(e) => setDelay(Number(e.target.value))}
-                />
-              </div>
-
+              <GameControls
+                auto={auto}
+                onStep={stepOnce}
+                onAutoFree={handleAutoFree}
+                onAutoHalf={handleAutoHalf}
+                onAutoGame={handleAutoGame}
+                onStopAuto={handleStopAuto}
+                onReset={resetGame}
+                delay={delay}
+                onDelayChange={handleDelayChange}
+              />
               <LineupPanel
                 useLineup={useLineup}
                 setUseLineup={setUseLineup}
@@ -1184,21 +1156,20 @@ export default function Game() {
               />
             </div>
           </ScoreboardPanel>
-          <div className="card" style={{ padding: 12 }}>
-            <div className="h2">Abridores</div>
-            <div className="muted" style={{ display: "grid", gap: 6 }}>
-              <div>
-                <strong>AWAY</strong>: {awayStarterName ?? "-"} ERA 
-                 {awayStarterERA != null ? awayStarterERA.toFixed(2) : "-"} /
-                WHIP {awayStarterWHIP != null ? awayStarterWHIP.toFixed(2) : "-"}
-              </div>
-              <div>
-                <strong>HOME</strong>: {homeStarterName ?? "-"} ERA 
-                 {homeStarterERA != null ? homeStarterERA.toFixed(2) : "-"} /
-                WHIP {homeStarterWHIP != null ? homeStarterWHIP.toFixed(2) : "-"}
-              </div>
-            </div>
-          </div>
+          <StartersCard
+            away={{
+              label: "AWAY",
+              name: awayStarterName,
+              era: awayStarterERA,
+              whip: awayStarterWHIP,
+            }}
+            home={{
+              label: "HOME",
+              name: homeStarterName,
+              era: homeStarterERA,
+              whip: homeStarterWHIP,
+            }}
+          />
           <EraTrendsPanel
             awayTitle={`Tendencia ERA abridor AWAY${
               awayStarterName ? ` - ${awayStarterName}` : ""
