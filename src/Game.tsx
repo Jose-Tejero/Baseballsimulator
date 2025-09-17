@@ -1054,6 +1054,234 @@ export default function Game() {
     [setDelay]
   );
 
+  const handleRunMonteCarlo = useCallback(() => {
+    try {
+      if (useLineup) {
+        const mkSeasonPoint = (
+          era: number | null,
+          ipOuts: number | null
+        ) => {
+          if (era == null || !Number.isFinite(era)) return null as any;
+          if (
+            ipOuts == null ||
+            !Number.isFinite(ipOuts) ||
+            ipOuts <= 0
+          )
+            return null as any;
+          const ip = ipOuts / 3;
+          const er = (era * ip) / 9;
+          return { er, outs: ipOuts } as GameERIP;
+        };
+        const homeSeries =
+          homeStarterLog && homeStarterLog.length
+            ? homeStarterLog
+            : (() => {
+                const p = mkSeasonPoint(
+                  homeStarterERA,
+                  homeStarterIPOuts
+                );
+                return p ? [p] : [];
+              })();
+        const awaySeries =
+          awayStarterLog && awayStarterLog.length
+            ? awayStarterLog
+            : (() => {
+                const p = mkSeasonPoint(
+                  awayStarterERA,
+                  awayStarterIPOuts
+                );
+                return p ? [p] : [];
+              })();
+        const homeBuff = homeSeries.length
+          ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
+          : 0;
+        const awayBuff = awaySeries.length
+          ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
+          : 0;
+        const adjustTop = {
+          runsPF: buffToRunsPF(homeBuff) * 1,
+          hrPF: 1,
+        };
+        const adjustBottom = {
+          runsPF: buffToRunsPF(awayBuff) * parkRunsPF,
+          hrPF: parkHRPF,
+        };
+        const hands = {
+          homePitcher: homePitcherHand,
+          awayPitcher: awayPitcherHand,
+        } as const;
+        const r = monteCarloLineup(
+          homeBatRoster,
+          awayBatRoster,
+          mcRuns,
+          hands,
+          rules,
+          adjustTop,
+          adjustBottom
+        );
+        setMcResult({
+          runs: r.runs,
+          homeWinPct: r.homeWinPct,
+          awayWinPct: r.awayWinPct,
+          tiePct: r.tiePct,
+          avgHomeRuns: r.avgHomeRuns,
+          avgAwayRuns: r.avgAwayRuns,
+        });
+      } else {
+        const IP0 = 50;
+        const regressERA = (
+          era: number | null,
+          ipOuts: number | null,
+          baseline: number,
+          ip0: number
+        ) => {
+          if (era == null || !Number.isFinite(era)) return baseline;
+          const ip =
+            typeof ipOuts === "number" && Number.isFinite(ipOuts)
+              ? ipOuts / 3
+              : 0;
+          const w = ip <= 0 ? 0 : ip / (ip + ip0);
+          const adj = w * (era as number) + (1 - w) * baseline;
+          return Number.isFinite(adj) ? adj : baseline;
+        };
+        const starterHome =
+          homeStarterERA != null
+            ? {
+                ERA: regressERA(
+                  homeStarterERA,
+                  homeStarterIPOuts,
+                  eraHome,
+                  IP0
+                ),
+                WHIP: homeStarterWHIP ?? undefined,
+              }
+            : undefined;
+        const starterAway =
+          awayStarterERA != null
+            ? {
+                ERA: regressERA(
+                  awayStarterERA,
+                  awayStarterIPOuts,
+                  eraAway,
+                  IP0
+                ),
+                WHIP: awayStarterWHIP ?? undefined,
+              }
+            : undefined;
+        const mkSeasonPoint2 = (
+          era: number | null,
+          ipOuts: number | null
+        ) => {
+          if (era == null || !Number.isFinite(era)) return null as any;
+          if (
+            ipOuts == null ||
+            !Number.isFinite(ipOuts) ||
+            ipOuts <= 0
+          )
+            return null as any;
+          const ip = ipOuts / 3;
+          const er = (era * ip) / 9;
+          return { er, outs: ipOuts } as GameERIP;
+        };
+        const homeSeries =
+          homeStarterLog && homeStarterLog.length
+            ? homeStarterLog
+            : (() => {
+                const p = mkSeasonPoint2(
+                  homeStarterERA,
+                  homeStarterIPOuts
+                );
+                return p ? [p] : [];
+              })();
+        const awaySeries =
+          awayStarterLog && awayStarterLog.length
+            ? awayStarterLog
+            : (() => {
+                const p = mkSeasonPoint2(
+                  awayStarterERA,
+                  awayStarterIPOuts
+                );
+                return p ? [p] : [];
+              })();
+        const homeBuff = starterHome
+          ? homeSeries.length
+            ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
+            : 0
+          : 0;
+        const awayBuff = starterAway
+          ? awaySeries.length
+            ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
+            : 0
+          : 0;
+        const starters = {
+          starterInnings: 6,
+          starterHome: starterHome
+            ? withBuffedPitch(starterHome, homeBuff)
+            : undefined,
+          starterAway: starterAway
+            ? withBuffedPitch(starterAway, awayBuff)
+            : undefined,
+          park: {
+            runsPF: parkRunsPF,
+            hrPF: parkHRPF,
+            homeAdvOnly: true,
+          },
+        } as const;
+        const r = monteCarlo(
+          {
+            bat: { AVG: avgHome, OBP: obpHome, SLG: slgHome },
+            pitch: { ERA: eraHome, WHIP: whipHome },
+          },
+          {
+            bat: { AVG: avgAway, OBP: obpAway, SLG: slgAway },
+            pitch: { ERA: eraAway, WHIP: whipAway },
+          },
+          mcRuns,
+          rules,
+          starters
+        );
+        setMcResult({
+          runs: r.runs,
+          homeWinPct: r.homeWinPct,
+          awayWinPct: r.awayWinPct,
+          tiePct: r.tiePct,
+          avgHomeRuns: r.avgHomeRuns,
+          avgAwayRuns: r.avgAwayRuns,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [
+    useLineup,
+    homeStarterLog,
+    awayStarterLog,
+    homeStarterERA,
+    homeStarterIPOuts,
+    homeStarterWHIP,
+    awayStarterERA,
+    awayStarterIPOuts,
+    awayStarterWHIP,
+    parkRunsPF,
+    parkHRPF,
+    homePitcherHand,
+    awayPitcherHand,
+    homeBatRoster,
+    awayBatRoster,
+    mcRuns,
+    rules,
+    avgHome,
+    obpHome,
+    slgHome,
+    eraHome,
+    whipHome,
+    avgAway,
+    obpAway,
+    slgAway,
+    eraAway,
+    whipAway,
+  ]);
+
   // ------------------ Auto-simulaci�n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
@@ -1260,207 +1488,7 @@ export default function Game() {
           <MonteCarloPanel
             mcRuns={mcRuns}
             setMcRuns={setMcRuns}
-            onRun={() => {
-              try {
-                if (useLineup) {
-                  const mkSeasonPoint = (
-                    era: number | null,
-                    ipOuts: number | null
-                  ) => {
-                    if (era == null || !Number.isFinite(era))
-                      return null as any;
-                    if (
-                      ipOuts == null ||
-                      !Number.isFinite(ipOuts) ||
-                      ipOuts <= 0
-                    )
-                      return null as any;
-                    const ip = ipOuts / 3;
-                    const er = (era * ip) / 9;
-                    return { er, outs: ipOuts } as GameERIP;
-                  };
-                  const homeSeries =
-                    homeStarterLog && homeStarterLog.length
-                      ? homeStarterLog
-                      : (() => {
-                          const p = mkSeasonPoint(
-                            homeStarterERA,
-                            homeStarterIPOuts
-                          );
-                          return p ? [p] : [];
-                        })();
-                  const awaySeries =
-                    awayStarterLog && awayStarterLog.length
-                      ? awayStarterLog
-                      : (() => {
-                          const p = mkSeasonPoint(
-                            awayStarterERA,
-                            awayStarterIPOuts
-                          );
-                          return p ? [p] : [];
-                        })();
-                  const homeBuff = homeSeries.length
-                    ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
-                    : 0;
-                  const awayBuff = awaySeries.length
-                    ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
-                    : 0;
-                  const adjustTop = {
-                    runsPF: buffToRunsPF(homeBuff) * 1,
-                    hrPF: 1,
-                  };
-                  const adjustBottom = {
-                    runsPF: buffToRunsPF(awayBuff) * parkRunsPF,
-                    hrPF: parkHRPF,
-                  };
-                  const hands = {
-                    homePitcher: homePitcherHand,
-                    awayPitcher: awayPitcherHand,
-                  } as const;
-                  const r = monteCarloLineup(
-                    homeBatRoster,
-                    awayBatRoster,
-                    mcRuns,
-                    hands,
-                    rules,
-                    adjustTop,
-                    adjustBottom
-                  );
-                  setMcResult({
-                    runs: r.runs,
-                    homeWinPct: r.homeWinPct,
-                    awayWinPct: r.awayWinPct,
-                    tiePct: r.tiePct,
-                    avgHomeRuns: r.avgHomeRuns,
-                    avgAwayRuns: r.avgAwayRuns,
-                  });
-                } else {
-                  const IP0 = 50;
-                  const regressERA = (
-                    era: number | null,
-                    ipOuts: number | null,
-                    baseline: number,
-                    ip0: number
-                  ) => {
-                    if (era == null || !Number.isFinite(era)) return baseline;
-                    const ip =
-                      typeof ipOuts === "number" && Number.isFinite(ipOuts)
-                        ? ipOuts / 3
-                        : 0;
-                    const w = ip <= 0 ? 0 : ip / (ip + ip0);
-                    const adj = w * (era as number) + (1 - w) * baseline;
-                    return Number.isFinite(adj) ? adj : baseline;
-                  };
-                  const starterHome =
-                    homeStarterERA != null
-                      ? {
-                          ERA: regressERA(
-                            homeStarterERA,
-                            homeStarterIPOuts,
-                            eraHome,
-                            IP0
-                          ),
-                          WHIP: homeStarterWHIP ?? undefined,
-                        }
-                      : undefined;
-                  const starterAway =
-                    awayStarterERA != null
-                      ? {
-                          ERA: regressERA(
-                            awayStarterERA,
-                            awayStarterIPOuts,
-                            eraAway,
-                            IP0
-                          ),
-                          WHIP: awayStarterWHIP ?? undefined,
-                        }
-                      : undefined;
-                  const mkSeasonPoint2 = (
-                    era: number | null,
-                    ipOuts: number | null
-                  ) => {
-                    if (era == null || !Number.isFinite(era))
-                      return null as any;
-                    if (
-                      ipOuts == null ||
-                      !Number.isFinite(ipOuts) ||
-                      ipOuts <= 0
-                    )
-                      return null as any;
-                    const ip = ipOuts / 3;
-                    const er = (era * ip) / 9;
-                    return { er, outs: ipOuts } as GameERIP;
-                  };
-                  const homeSeries =
-                    homeStarterLog && homeStarterLog.length
-                      ? homeStarterLog
-                      : (() => {
-                          const p = mkSeasonPoint2(
-                            homeStarterERA,
-                            homeStarterIPOuts
-                          );
-                          return p ? [p] : [];
-                        })();
-                  const awaySeries =
-                    awayStarterLog && awayStarterLog.length
-                      ? awayStarterLog
-                      : (() => {
-                          const p = mkSeasonPoint2(
-                            awayStarterERA,
-                            awayStarterIPOuts
-                          );
-                          return p ? [p] : [];
-                        })();
-                  const homeBuff = starterHome
-                    ? homeSeries.length
-                      ? currentBuff(homeSeries, { leagueERA: 4.3 }).buff
-                      : 0
-                    : 0;
-                  const awayBuff = starterAway
-                    ? awaySeries.length
-                      ? currentBuff(awaySeries, { leagueERA: 4.3 }).buff
-                      : 0
-                    : 0;
-                  const starters = {
-                    starterInnings: 6,
-                    starterHome: starterHome
-                      ? withBuffedPitch(starterHome, homeBuff)
-                      : undefined,
-                    starterAway: starterAway
-                      ? withBuffedPitch(starterAway, awayBuff)
-                      : undefined,
-                    park: {
-                      runsPF: parkRunsPF,
-                      hrPF: parkHRPF,
-                      homeAdvOnly: true,
-                    },
-                  } as const;
-                  const r = monteCarlo(
-                    {
-                      bat: { AVG: avgHome, OBP: obpHome, SLG: slgHome },
-                      pitch: { ERA: eraHome, WHIP: whipHome },
-                    },
-                    {
-                      bat: { AVG: avgAway, OBP: obpAway, SLG: slgAway },
-                      pitch: { ERA: eraAway, WHIP: whipAway },
-                    },
-                    mcRuns,
-                    rules,
-                    starters
-                  );
-                  setMcResult({
-                    runs: r.runs,
-                    homeWinPct: r.homeWinPct,
-                    awayWinPct: r.awayWinPct,
-                    tiePct: r.tiePct,
-                    avgHomeRuns: r.avgHomeRuns,
-                    avgAwayRuns: r.avgAwayRuns,
-                  });
-                }
-              } catch (e) {
-                console.error(e);
-              }
-            }}
+            onRun={handleRunMonteCarlo}
             mcResult={mcResult}
             rules={rules}
             homeLabel={
