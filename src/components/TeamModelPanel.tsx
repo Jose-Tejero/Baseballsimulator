@@ -15,8 +15,8 @@ export function TeamModelPanel(props: {
   loadingHome: boolean;
   errAway: string | null;
   errHome: string | null;
-  loadTeamStats: (which: "home" | "away", teamId: number) => void | Promise<void>;
-  loadRoster: (which: "home" | "away", teamId: number) => void | Promise<void>;
+  loadTeamStats: (which: "home" | "away", teamId?: number) => void | Promise<void>;
+  loadRoster: (which: "home" | "away", teamId?: number) => void | Promise<void>;
   awayRoster: RosterPlayer[];
   homeRoster: RosterPlayer[];
   loadingRosterAway: boolean;
@@ -83,10 +83,6 @@ export function TeamModelPanel(props: {
               onChange={(e) => {
                 const v = e.target.value === "" ? "" : Number(e.target.value);
                 p.setAwayTeamId(v);
-                if (v !== "" && !Number.isNaN(v as number)) {
-                  p.loadTeamStats("away", v as number);
-                  p.loadRoster("away", v as number);
-                }
               }}
             >
               <option value="">Seleccionar equipo (AWAY)</option>
@@ -100,10 +96,12 @@ export function TeamModelPanel(props: {
             <button
               className="button secondary"
               disabled={p.loadingAway || !p.awayTeamId}
-              onClick={() =>
-                typeof p.awayTeamId === "number" &&
-                (p.loadTeamStats("away", p.awayTeamId), p.loadRoster("away", p.awayTeamId))
-              }
+              onClick={() => {
+                if (typeof p.awayTeamId === "number") {
+                  p.loadTeamStats("away", p.awayTeamId);
+                  p.loadRoster("away", p.awayTeamId);
+                }
+              }}
             >
               {p.loadingAway ? "Cargando…" : "Cargar"}
             </button>
@@ -139,7 +137,11 @@ export function TeamModelPanel(props: {
                 <button
                   className="button secondary"
                   disabled={p.loadingRosterAway || !p.awayTeamId}
-                  onClick={() => typeof p.awayTeamId === "number" && p.loadRoster("away", p.awayTeamId)}
+                  onClick={() => {
+                    if (typeof p.awayTeamId === "number") {
+                      p.loadRoster("away", p.awayTeamId);
+                    }
+                  }}
                 >
                   {p.loadingRosterAway ? "Cargando…" : "Refrescar roster"}
                 </button>
@@ -168,10 +170,6 @@ export function TeamModelPanel(props: {
               onChange={(e) => {
                 const v = e.target.value === "" ? "" : Number(e.target.value);
                 p.setHomeTeamId(v);
-                if (v !== "" && !Number.isNaN(v as number)) {
-                  p.loadTeamStats("home", v as number);
-                  p.loadRoster("home", v as number);
-                }
               }}
             >
               <option value="">Seleccionar equipo (HOME)</option>
@@ -185,10 +183,12 @@ export function TeamModelPanel(props: {
             <button
               className="button secondary"
               disabled={p.loadingHome || !p.homeTeamId}
-              onClick={() =>
-                typeof p.homeTeamId === "number" &&
-                (p.loadTeamStats("home", p.homeTeamId), p.loadRoster("home", p.homeTeamId))
-              }
+              onClick={() => {
+                if (typeof p.homeTeamId === "number") {
+                  p.loadTeamStats("home", p.homeTeamId);
+                  p.loadRoster("home", p.homeTeamId);
+                }
+              }}
             >
               {p.loadingHome ? "Cargando…" : "Cargar"}
             </button>
@@ -223,7 +223,11 @@ export function TeamModelPanel(props: {
                 <button
                   className="button secondary"
                   disabled={p.loadingRosterHome || !p.homeTeamId}
-                  onClick={() => typeof p.homeTeamId === "number" && p.loadRoster("home", p.homeTeamId)}
+                  onClick={() => {
+                    if (typeof p.homeTeamId === "number") {
+                      p.loadRoster("home", p.homeTeamId);
+                    }
+                  }}
                 >
                   {p.loadingRosterHome ? "Cargando…" : "Refrescar roster"}
                 </button>
