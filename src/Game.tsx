@@ -460,6 +460,7 @@ export default function Game() {
       ).trim();
       if (which === "home") {
         setHomeBatRoster(st.data.roster);
+        setIdxHome(0);
         setHomeLineupInfo(infoTxt);
         setErrLineupHome(
           st.predicted
@@ -469,6 +470,7 @@ export default function Game() {
         setHomeGamePk(st.data.gamePk ?? null);
       } else {
         setAwayBatRoster(st.data.roster);
+        setIdxAway(0);
         setAwayLineupInfo(infoTxt);
         setErrLineupAway(
           st.predicted
@@ -612,6 +614,7 @@ export default function Game() {
     const st = homeNextLineupState;
     if (st?.data) {
       setHomeBatRoster(st.data.roster);
+      setIdxHome(0);
       setHomeLineupInfo(
         (
           (st.predicted ? "Predicción" : "") +
@@ -633,6 +636,7 @@ export default function Game() {
     const st = awayNextLineupState;
     if (st?.data) {
       setAwayBatRoster(st.data.roster);
+      setIdxAway(0);
       setAwayLineupInfo(
         (
           (st.predicted ? "Predicción" : "") +
@@ -666,6 +670,7 @@ export default function Game() {
     if (d) {
       if (d.home?.roster) {
         setHomeBatRoster(d.home.roster);
+        setIdxHome(0);
         setHomeLineupInfo(d.home.info ?? `Anclado a gamePk ${anchorGamePk}`);
         setErrLineupHome(
           d.home.predicted
@@ -679,6 +684,7 @@ export default function Game() {
       }
       if (d.away?.roster) {
         setAwayBatRoster(d.away.roster);
+        setIdxAway(0);
         setAwayLineupInfo(d.away.info ?? `Anclado a gamePk ${anchorGamePk}`);
         setErrLineupAway(
           d.away.predicted
@@ -1030,9 +1036,13 @@ export default function Game() {
   }
 
   function resetGame() {
-    setGs({ ...initialState, rules: { ...rules } });
+    const nextState = { ...initialState, rules: { ...rules } };
+    setGs(nextState);
+    gsRef.current = nextState;
     setLog([]);
     setAuto(false);
+    setIdxHome(0);
+    setIdxAway(0);
   }
 
   const startAuto = useCallback(
