@@ -723,8 +723,8 @@ export default function Game() {
         const base = eventProbsFromRateLine(rate);
         // Ajustes: vista previa simplificada (buff neutro) + PFs
         // Buff por tendencia (reutilizamos cálculo de abajo en computeStep)
-        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquÃ­ simplificamos a neutro (0).
-        const pfBuffTop = 1; // si quisiéramos, podrÃ­amos exponer el buff actual aquÃ­.
+        // Usaremos pfBuff con base en logs ya calculados en computeStep, pero aquí simplificamos a neutro (0).
+        const pfBuffTop = 1; // si quisiéramos, podríamos exponer el buff actual aquí.
         const pfBuffBottom = 1;
         const pfParkTop = 1; // homeAdvOnly => solo aplica a BAJAS
         const pfParkBottom = parkRunsPF;
@@ -1016,7 +1016,7 @@ export default function Game() {
     const desc = applyEvent(next, ev);
     const after = next;
     const logLine = narratePlay(before, desc, after);
-    // Avanzar autom�ticamente mientras no termine el juego
+    // Avanzar automï¿½ticamente mientras no termine el juego
     if (useLineup) {
       const battingTop = prev.half === "top";
       if (battingTop) setIdxAway((i) => i + 1);
@@ -1292,7 +1292,7 @@ export default function Game() {
     whipAway,
   ]);
 
-  // ------------------ Auto-simulaci�n ------------------
+  // ------------------ Auto-simulaciï¿½n ------------------
   useEffect(() => {
     if (!auto || gs.status.over) return;
 
@@ -1402,6 +1402,81 @@ export default function Game() {
         : String(whip);
     return `Pitcheo vigente: ${teamLbl} - ${who} - ERA ${eraTxt} / WHIP ${whipTxt}`;
   })();
+
+  const teamModelStats = useMemo(() => {
+    const formatValue = (value: number | null | undefined, digits: number) => {
+      if (typeof value !== "number" || !Number.isFinite(value)) return "-";
+      return value.toFixed(digits);
+    };
+
+    const entries = [
+      {
+        key: "AVG",
+        label: "AVG",
+        min: 0.15,
+        max: 0.4,
+        digits: 3,
+        awayValue: avgAway,
+        homeValue: avgHome,
+      },
+      {
+        key: "OBP",
+        label: "OBP",
+        min: 0.25,
+        max: 0.5,
+        digits: 3,
+        awayValue: obpAway,
+        homeValue: obpHome,
+      },
+      {
+        key: "SLG",
+        label: "SLG",
+        min: 0.3,
+        max: 0.7,
+        digits: 3,
+        awayValue: slgAway,
+        homeValue: slgHome,
+      },
+      {
+        key: "ERA",
+        label: "ERA",
+        min: 1,
+        max: 8,
+        digits: 2,
+        awayValue: eraAway,
+        homeValue: eraHome,
+      },
+      {
+        key: "WHIP",
+        label: "WHIP",
+        min: 0.8,
+        max: 1.8,
+        digits: 2,
+        awayValue: whipAway,
+        homeValue: whipHome,
+      },
+    ] as const;
+
+    return entries.map(({ key, label, min, max, digits, awayValue, homeValue }) => ({
+      key,
+      label,
+      rangeText: `${min.toFixed(digits)} - ${max.toFixed(digits)}`,
+      away: formatValue(awayValue, digits),
+      home: formatValue(homeValue, digits),
+    }));
+  }, [
+    avgAway,
+    avgHome,
+    obpAway,
+    obpHome,
+    slgAway,
+    slgHome,
+    eraAway,
+    eraHome,
+    whipAway,
+    whipHome,
+  ]);
+
 
   // ------------------ Render ------------------
   return (
@@ -1523,6 +1598,29 @@ export default function Game() {
 
           {/* Log */}
           <LogPanel log={log} />
+
+          <div className="statsPreview">
+            <h2 className="h2">Estadisticas del modelo (API)</h2>
+            <div className="statsPreviewGrid">
+              {teamModelStats.map((stat) => (
+                <div className="statsPreviewRow" key={stat.key}>
+                  <div className="statsPreviewLabel">
+                    {stat.label} ({stat.rangeText})
+                  </div>
+                  <div className="statsPreviewValues">
+                    <div className="statsPreviewTeamLine">
+                      <span className="statsPreviewTeam">AWAY</span>
+                      <span className="statsPreviewValue">{stat.away}</span>
+                    </div>
+                    <div className="statsPreviewTeamLine">
+                      <span className="statsPreviewTeam">HOME</span>
+                      <span className="statsPreviewValue">{stat.home}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Reglas */}
           <RulesPanel rules={rules} setRules={setRules} syncRules={syncRules} />

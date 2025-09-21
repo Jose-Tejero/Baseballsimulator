@@ -267,6 +267,7 @@ export function TeamModelPanel(props: {
         </div>
       </div>
 
+      {/* Controles manuales de estadisticas ocultos temporalmente
       <Field label={`AWAY - AVG (0.150 - 0.400): ${p.avgAway.toFixed(3)}`}>
         <SteppedNumber value={p.avgAway} onChange={p.setAvgAway} min={0.15} max={0.4} step={0.001} decimals={3} ariaLabel="AVG Away" />
       </Field>
@@ -300,6 +301,7 @@ export function TeamModelPanel(props: {
       <Field label={`HOME - WHIP (0.80 - 1.80): ${p.whipHome.toFixed(2)}`}>
         <SteppedNumber value={p.whipHome} onChange={p.setWhipHome} min={0.8} max={1.8} step={0.01} decimals={2} ariaLabel="WHIP Home" />
       </Field>
+      */}
 
       <details>
         <summary className="muted">Ver probabilidades del bateador actual</summary>

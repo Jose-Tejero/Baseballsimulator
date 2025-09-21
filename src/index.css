@@ -243,3 +243,50 @@ body { overflow-x: hidden; }
 }
 
 
+.statsPreview {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: calc(var(--radius) - 6px);
+  background: color-mix(in oklab, var(--surface) 92%, black 8%);
+  border: var(--border);
+}
+
+.statsPreviewGrid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.statsPreviewRow {
+  display: grid;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.statsPreviewLabel {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.statsPreviewValues {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.statsPreviewTeamLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.statsPreviewTeam {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.statsPreviewValue {
+  font-weight: 600;
+}
+
