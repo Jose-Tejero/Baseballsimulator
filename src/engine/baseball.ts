@@ -154,15 +154,27 @@ function advanceRunnersStochastic(gs: GameState, basesToAdvance: number) {
     },
   } as const;
 
-  function placeOrScore(_target: keyof Bases, scoreProb: number, elseStayAt?: keyof Bases) {
-    if (bernoulli(scoreProb)) runs++;
-    else if (elseStayAt) nb[elseStayAt] = true;
-    // si anota, no ocupamos base
+  function placeOrScore(
+    _target: keyof Bases,
+    scoreProb: number,
+    elseStayAt?: keyof Bases,
+    forced?: boolean
+  ): boolean {
+    const scored = forced || bernoulli(scoreProb);
+    if (scored) {
+      runs++;
+      return true;
+    }
+    if (elseStayAt) nb[elseStayAt] = true;
+    return false;
   }
 
   if (basesToAdvance === 1) {
     // Corredores existentes
-    if (b0.third) placeOrScore("third", P.single.scoreFrom3B, "third");
+    const forcedChain = b0.first && b0.second && b0.third;
+    let thirdScored = false;
+    if (b0.third)
+      thirdScored = placeOrScore("third", P.single.scoreFrom3B, "third", forcedChain);
     if (b0.second) {
       if (bernoulli(P.single.scoreFrom2B)) runs++;
       else nb.third = true;
@@ -174,7 +186,7 @@ function advanceRunnersStochastic(gs: GameState, basesToAdvance: number) {
       else nb.second = true;
     }
     // Bateador a 1B (si bases estaban llenas y nadie anotA de 3B, puede empujar carrera)
-    if (b0.first && b0.second && b0.third && !nb.third) {
+    if (forcedChain && !thirdScored && !nb.third) {
       // bases llenas & sencillo con retenciAn: empuja 1
       runs++;
       nb.third = true; // 2B->3B
