@@ -67,3 +67,12 @@ export default tseslint.config([
   },
 ])
 ```
+## Testing
+
+This project uses Vitest together with Testing Library and MSW to exercise UI and data hooks.
+
+- `npm run test` runs the suite once in CI mode.
+- `npm run test:watch` keeps Vitest in watch mode.
+- `npm run test:coverage` generates text and lcov coverage reports.
+
+Global jest-dom matchers and the shared MSW server are configured in `src/test/setup.ts`. Import `server` from that file to register request handlers in your suites, and prefer the helpers in `@testing-library/react`/`user-event` for rendering and interaction.
