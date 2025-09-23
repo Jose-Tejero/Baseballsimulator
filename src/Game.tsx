@@ -122,6 +122,21 @@ export default function Game() {
     if (Array.isArray(teamsState.data)) setTeams(teamsState.data);
   }, [teamsState.data]);
 
+  const homeTeam = useMemo(
+    () =>
+      typeof homeTeamId === "number"
+        ? teams.find((t) => t.id === homeTeamId)
+        : undefined,
+    [homeTeamId, teams]
+  );
+  const awayTeam = useMemo(
+    () =>
+      typeof awayTeamId === "number"
+        ? teams.find((t) => t.id === awayTeamId)
+        : undefined,
+    [awayTeamId, teams]
+  );
+
   // Hooks: resumen de equipo (stats)
   const homeSummaryState = useTeamSummary(
     typeof homeTeamId === "number" ? homeTeamId : undefined,
@@ -1344,13 +1359,19 @@ export default function Game() {
   ]);
 
   // ------------------ Helpers (UI strings) ------------------
+  const battingTeamName =
+    gs.half === "top"
+      ? awayTeam?.name ?? "Away"
+      : homeTeam?.name ?? "Home";
   const statusLine = `Inning ${gs.inning} - ${
     gs.half === "top" ? "Alta" : "Baja"
-  } - Outs: ${gs.outs} - Al bate: ${gs.half === "top" ? "Away" : "Home"}`;
+  } - Outs: ${gs.outs} - Al bate: ${battingTeamName}`;
   const pitchLine = (() => {
     const starterInnings = 6;
     const isTop = gs.half === "top";
-    const teamLbl = isTop ? "Home" : "Away";
+    const teamLbl = isTop
+      ? homeTeam?.name ?? "Home"
+      : awayTeam?.name ?? "Away";
     const useStarter = isTop
       ? gs.inning <= starterInnings && homeStarterERA != null
       : gs.inning <= starterInnings && awayStarterERA != null;
@@ -1492,6 +1513,8 @@ export default function Game() {
             awayScore={gs.scoreAway}
             homeScore={gs.scoreHome}
             bases={gs.bases}
+            awayLabel={awayTeam?.name ?? "Away"}
+            homeLabel={homeTeam?.name ?? "Home"}
           >
             <div style={{ display: "grid", gap: 8 }}>
               <GameControls

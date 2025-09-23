@@ -8,6 +8,8 @@ export function ScoreboardPanel({
   awayScore,
   homeScore,
   bases,
+  awayLabel = "Away",
+  homeLabel = "Home",
   children,
 }: {
   title?: string;
@@ -16,6 +18,8 @@ export function ScoreboardPanel({
   awayScore: number;
   homeScore: number;
   bases: { first: boolean; second: boolean; third: boolean };
+  awayLabel?: string;
+  homeLabel?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -26,8 +30,8 @@ export function ScoreboardPanel({
         <p className="muted">{pitchLine}</p>
       </header>
 
-      <Row name="Away" value={awayScore} />
-      <Row name="Home" value={homeScore} />
+      <Row name={awayLabel} value={awayScore} />
+      <Row name={homeLabel} value={homeScore} />
 
       <div>
         <h3 className="h2">Bases</h3>
