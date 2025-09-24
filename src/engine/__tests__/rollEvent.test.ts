@@ -1,16 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { rollEventFromProbs, type EventProbs } from '../baseball'
-import { mockRandomSequence } from '../../test/factories'
+import { rollEventFromProbs } from '../baseball'
+import { createEventProbs, mockRandomSequence } from '../../test/factories'
 
-const baseProbs: EventProbs = {
-  OUT: 0.7,
-  BB: 0.2,
-  HBP: 0,
-  '1B': 0.1,
-  '2B': 0,
-  '3B': 0,
-  HR: 0,
-}
+const baseProbs = createEventProbs({ OUT: 0.7, BB: 0.2, HBP: 0, '1B': 0.1, '2B': 0, '3B': 0, HR: 0 })
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -18,7 +10,7 @@ afterEach(() => {
 
 describe('rollEventFromProbs', () => {
   it('devuelve el evento con probabilidad positiva aunque sea el único', () => {
-    const event = rollEventFromProbs({ OUT: 0, BB: 0, HBP: 0, '1B': 0, '2B': 0, '3B': 0, HR: 1 })
+    const event = rollEventFromProbs(createEventProbs({ OUT: 0, BB: 0, HBP: 0, '1B': 0, '2B': 0, '3B': 0, HR: 1 }))
 
     expect(event).toBe('HR')
   })
@@ -34,6 +26,6 @@ describe('rollEventFromProbs', () => {
   it('retorna OUT si todas las probabilidades son cero o negativas', () => {
     mockRandomSequence([0.42])
 
-    expect(rollEventFromProbs({ OUT: 0, BB: 0, HBP: 0, '1B': 0, '2B': 0, '3B': 0, HR: 0 })).toBe('OUT')
+    expect(rollEventFromProbs(createEventProbs({ OUT: 0, BB: 0, HBP: 0, '1B': 0, '2B': 0, '3B': 0, HR: 0 }))).toBe('OUT')
   })
 })
