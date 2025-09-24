@@ -83,7 +83,19 @@ describe('applyEvent', () => {
     expect(gs.bases.third).toBe(false)
   })
 
-  it('sencillo estocástico anota al corredor en 2B y empuja al de 1B a 3B', () => {
+  it('sencillo estocástico permite anotar al corredor en 3B con probabilidad alta', () => {
+    mockRandomSequence([0.1])
+
+    const gs = createGameState({ bases: { third: true }, outs: 0, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '1B')
+
+    expect(result).toBe('Sencillo (1B)')
+    expect(gs.scoreAway).toBe(1)
+    expect(gs.bases).toEqual({ first: true, second: false, third: false })
+  })
+
+  it('sencillo estocástico con corredores en 1B y 2B empuja al de 1B a 3B', () => {
     mockRandomSequence([0.4, 0.9, 0.1])
 
     const gs = createGameState({ bases: { first: true, second: true }, outs: 0, rules: { stochasticBaseRunning: true } })
@@ -98,7 +110,7 @@ describe('applyEvent', () => {
   it('sencillo estocástico deja al corredor de 1B en 2B cuando no hay agresividad', () => {
     mockRandomSequence([0.9, 0.9])
 
-    const gs = createGameState({ bases: { first: true }, outs: 1, rules: { stochasticBaseRunning: true } })
+    const gs = createGameState({ bases: { first: true }, outs: 0, rules: { stochasticBaseRunning: true } })
 
     const result = applyEvent(gs, '1B')
 
@@ -107,15 +119,15 @@ describe('applyEvent', () => {
     expect(gs.bases).toEqual({ first: true, second: true, third: false })
   })
 
-  it('doble estocástico anota al corredor de primera cuando el random lo permite', () => {
+  it('doble estocástico anota al corredor de primera si el random lo permite', () => {
     mockRandomSequence([0.1])
 
-    const gs = createGameState({ bases: { first: true, third: true }, outs: 1, rules: { stochasticBaseRunning: true } })
+    const gs = createGameState({ bases: { first: true }, outs: 1, rules: { stochasticBaseRunning: true } })
 
     const result = applyEvent(gs, '2B')
 
     expect(result).toBe('Doble (2B)')
-    expect(gs.scoreAway).toBe(2)
+    expect(gs.scoreAway).toBe(1)
     expect(gs.bases).toEqual({ first: false, second: true, third: false })
   })
 
@@ -129,5 +141,39 @@ describe('applyEvent', () => {
     expect(result).toBe('Doble (2B)')
     expect(gs.scoreAway).toBe(1)
     expect(gs.bases).toEqual({ first: false, second: true, third: true })
+  })
+
+  it('sencillo estocástico con dos outs y bases llenas produce dos carreras forzadas', () => {
+    mockRandomSequence([0.5, 0.5, 0.5])
+
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, outs: 2, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '1B')
+
+    expect(result).toBe('Sencillo (1B)')
+    expect(gs.scoreAway).toBe(2)
+    expect(gs.bases).toEqual({ first: true, second: true, third: false })
+  })
+
+  it('doble estocástico con dos outs y bases llenas deja corredores en 2B y 3B', () => {
+    mockRandomSequence([0.95, 0.95, 0.4])
+
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, outs: 2, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '2B')
+
+    expect(result).toBe('Doble (2B)')
+    expect(gs.scoreAway).toBe(2)
+    expect(gs.bases).toEqual({ first: false, second: true, third: true })
+  })
+
+  it('triple estocástico con dos outs y bases llenas anota a todos', () => {
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, outs: 2, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '3B')
+
+    expect(result).toBe('Triple (3B)')
+    expect(gs.scoreAway).toBe(3)
+    expect(gs.bases).toEqual({ first: false, second: false, third: true })
   })
 })
