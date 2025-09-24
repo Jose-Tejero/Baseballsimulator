@@ -1,34 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_RULES, applyEvent, type GameState, type Rules } from '../baseball'
-
-type RulesWithToggle = Rules & { stochasticBaseRunning?: boolean }
-
-type StateOverrides = Partial<GameState> & { rules?: Partial<RulesWithToggle> }
-
-function createState(overrides: StateOverrides = {}): GameState {
-  const rules: RulesWithToggle = { ...DEFAULT_RULES, stochasticBaseRunning: false }
-  if (overrides.rules) {
-    Object.assign(rules, overrides.rules)
-  }
-
-  const base: GameState = {
-    inning: 1,
-    half: 'top',
-    outs: 0,
-    bases: { first: false, second: false, third: false },
-    scoreHome: 0,
-    scoreAway: 0,
-    status: { over: false, winner: null },
-    rules,
-  }
-
-  return {
-    ...base,
-    ...overrides,
-    bases: { ...base.bases, ...overrides.bases },
-    status: overrides.status ?? base.status,
-  }
-}
+import { applyEvent } from '../baseball'
+import { createGameState, mockRandomSequence } from '../../test/factories'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -36,7 +8,7 @@ afterEach(() => {
 
 describe('applyEvent', () => {
   it('anota y mantiene las bases llenas con base por bolas', () => {
-    const gs = createState({ bases: { first: true, second: true, third: true } })
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, rules: { stochasticBaseRunning: false } })
 
     const result = applyEvent(gs, 'BB')
 
@@ -47,7 +19,7 @@ describe('applyEvent', () => {
   })
 
   it('limpia las bases con un home run', () => {
-    const gs = createState({ bases: { first: true, second: true, third: true } })
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, rules: { stochasticBaseRunning: false } })
 
     const result = applyEvent(gs, 'HR')
 
@@ -57,11 +29,9 @@ describe('applyEvent', () => {
   })
 
   it('genera doble play rodado cuando el aleatorio cae en GB y el DP se concreta', () => {
-    vi.spyOn(Math, 'random')
-      .mockImplementationOnce(() => 0.3) // rollOutType => GB
-      .mockImplementationOnce(() => 0.05) // bernoulli(dpProb) => true
+    mockRandomSequence([0.3, 0.05])
 
-    const gs = createState({ bases: { first: true }, outs: 0, rules: { stochasticBaseRunning: true } })
+    const gs = createGameState({ bases: { first: true }, outs: 0, rules: { stochasticBaseRunning: true } })
 
     const result = applyEvent(gs, 'OUT')
 
@@ -70,12 +40,40 @@ describe('applyEvent', () => {
     expect(gs.bases.first).toBe(false)
   })
 
-  it('produce elevado de sacrificio cuando el FB permite anotar desde 3B', () => {
-    vi.spyOn(Math, 'random')
-      .mockImplementationOnce(() => 0.85) // rollOutType => FB
-      .mockImplementationOnce(() => 0.01) // bernoulli(sfProb) => true
+  it('coloca las bases llenas tras sencillo determinista', () => {
+    const gs = createGameState({ bases: { first: true, second: true }, rules: { stochasticBaseRunning: false } })
 
-    const gs = createState({ bases: { third: true }, outs: 1, rules: { stochasticBaseRunning: true } })
+    const result = applyEvent(gs, '1B')
+
+    expect(result).toBe('Sencillo (1B)')
+    expect(gs.scoreAway).toBe(0)
+    expect(gs.bases).toEqual({ first: true, second: true, third: true })
+  })
+
+  it('anota dos carreras con doble determinista y bases llenas', () => {
+    const gs = createGameState({ bases: { first: true, second: true, third: true }, rules: { stochasticBaseRunning: false } })
+
+    const result = applyEvent(gs, '2B')
+
+    expect(result).toBe('Doble (2B)')
+    expect(gs.scoreAway).toBe(2)
+    expect(gs.bases).toEqual({ first: false, second: true, third: true })
+  })
+
+  it('anota desde primera con triple determinista', () => {
+    const gs = createGameState({ bases: { first: true }, rules: { stochasticBaseRunning: false } })
+
+    const result = applyEvent(gs, '3B')
+
+    expect(result).toBe('Triple (3B)')
+    expect(gs.scoreAway).toBe(1)
+    expect(gs.bases).toEqual({ first: false, second: false, third: true })
+  })
+
+  it('produce elevado de sacrificio cuando el FB permite anotar desde 3B', () => {
+    mockRandomSequence([0.85, 0.01])
+
+    const gs = createGameState({ bases: { third: true }, outs: 1, rules: { stochasticBaseRunning: true } })
 
     const result = applyEvent(gs, 'OUT')
 
@@ -83,5 +81,41 @@ describe('applyEvent', () => {
     expect(gs.outs).toBe(2)
     expect(gs.scoreAway).toBe(1)
     expect(gs.bases.third).toBe(false)
+  })
+
+  it('sencillo estocástico permite anotar al corredor en 3B con probabilidad alta', () => {
+    mockRandomSequence([0.1])
+
+    const gs = createGameState({ bases: { third: true }, outs: 0, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '1B')
+
+    expect(result).toBe('Sencillo (1B)')
+    expect(gs.scoreAway).toBe(1)
+    expect(gs.bases).toEqual({ first: true, second: false, third: false })
+  })
+
+  it('sencillo estocástico mantiene al corredor en 2B cuando falla la agresividad', () => {
+    mockRandomSequence([0.5, 0.9])
+
+    const gs = createGameState({ bases: { first: true }, outs: 0, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '1B')
+
+    expect(result).toBe('Sencillo (1B)')
+    expect(gs.scoreAway).toBe(0)
+    expect(gs.bases).toEqual({ first: true, second: true, third: false })
+  })
+
+  it('doble estocástico anota al corredor de primera si el random lo permite', () => {
+    mockRandomSequence([0.1])
+
+    const gs = createGameState({ bases: { first: true }, outs: 1, rules: { stochasticBaseRunning: true } })
+
+    const result = applyEvent(gs, '2B')
+
+    expect(result).toBe('Doble (2B)')
+    expect(gs.scoreAway).toBe(1)
+    expect(gs.bases).toEqual({ first: false, second: true, third: false })
   })
 })
